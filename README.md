@@ -2,7 +2,7 @@ kraken
 ======
 
 Getting started - 
-Download the package, unzip and run make from the main directory.  You need gcc version 4.6.3 for this. You can start by running the code with the data provided in the samples directory. This is explained below.
+Download the package, unzip and run make from the main directory.  Use gcc version 4.2 or higher for this. You can start by running the code with the data provided in the samples directory. This is explained below.
 
 
 Example - 
