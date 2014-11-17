@@ -8,6 +8,7 @@
 #include "base/FileParser.h"
 #include "src/AlignmentBlock.h"
 #include "src/AnnotationQuery/NCList.h"
+#include "src/Coordinate.h"
 
 // Forward declaration 
 class Annotation; 
@@ -40,70 +41,6 @@ private:
 
 
 //======================================================
-/** Annotation Item Coordinates */
-class AICoords {
-public:
-  AICoords():chr(""), orient(false), start(-1), stop(-1) {}
-
-  AICoords(string ch, bool ori, int str, int stp)
-          :chr(ch), orient(ori), start(str), stop(stp) {}
-
-  bool operator<(const AICoords & c) const {
-    if (getChr() != c.getChr())      { return (getChr() < c.getChr()); }
-    return (getStart() < c.getStart()); 
-  }
-  bool operator==(const AICoords & c) const {
-    return ( isSameCoords(c) && isSameOrient(c) );
-  }
-
-  const string & getChr() const   { return chr;                     }
-  char getOrient() const          { return orient?'+':'-';          }
-  int getStart() const            { return start;                   }
-  int getStop() const             { return stop;                    }
-  void setChr(const string& ch)   { chr    = ch;                    }
-  void setOrient(bool ori)        { orient = ori;                   }
-  void setOrient(char ori)        { orient = (ori=='-')?false:true; }
-  void setStart(int str)          { start  = str;                   }
-  void setStop(int stp)           { stop   = stp;                   }
-  // Backward compatiblity with GenomeCoord class
-  void SetChr(char ch, char ori) {
-    chr = ch;
-    orient = ori;
-  }
-  bool isReversed() const { return !orient; }
-  void set(const string& ch, bool ori, int str, int stp);
-  void set(const string& ch, char ori, int str, int stp); 
-
-  /** Return the length of the coordinate by subtracting start from stop (absolute value) */
-  int findLength() const { return (abs(getStop()-getStart())+1); }
-  /** Returns true if both coords have the same orientation  */
-  bool isSameOrient(const AICoords& other) const {return (other.getOrient() == getOrient()); }
-  /** Returns true if the two are on the same chromosome & share at least one base */
-  bool hasOverlap(const AICoords& other) const;  
-  /** Returns true if this coord contains other */
-  bool contains(const AICoords& other) const;    
-  /** Returns true if start and stop and chromosome of both coords are the same */
-  bool isSameCoords(const AICoords& other) const; 
-  /** Returns the percentage of basepairs overlapping over total length of item */
-  int findOverlapCnt(const AICoords& other) const;  
-
-  /** 
-   * Creates a string containing the details of the object
-   * A separator character is provided to use for separating the fields
-   */
-  string toString(char sep) const;
-  string toString_noOrient(char sep) const; 
-  void print()const { cout << toString('\t') << endl; }
-  void setFromTarget(const AlignmentBlock & b);
-
-private:
-  string chr;    /// Chromosome
-  bool orient;   /// Orientation (true for forward (+) and false otherwise (-))
-  int  start;    /// Start point
-  int  stop;     /// Stop point 
-};
-
-//======================================================
 /**
  * Enumeration specifying the different types of annotation fields
  * AnnotationItem (specified by AITEM:0) 
@@ -120,32 +57,33 @@ class AnnotItemBase
 {
 public:
   AnnotItemBase(): coords(), children(), exons(), parent(NULL), transferredCoords(false), sublistIndex(-1) {}
-  AnnotItemBase(const AICoords& crds): coords(crds), children(), exons(), parent(NULL), transferredCoords(false), sublistIndex(-1) {}
+  AnnotItemBase(const Coordinate& crds): coords(crds), children(), exons(), parent(NULL), transferredCoords(false), sublistIndex(-1) {}
 
   virtual ~AnnotItemBase() {}
 
-  const string & getChr() const                         { return coords.getChr();    }
-  void setChr(const string& chr)                        { coords.setChr(chr);        }
-  int getStart() const                                  { return coords.getStart();  }
-  void setStart(int start)                              { coords.setStart(start);    }
-  int getStop() const                                   { return coords.getStop();   }
-  void setStop(int stop)                                { coords.setStop(stop);      }
-  char getOrient() const                                { return coords.getOrient(); }
-  void setOrient(bool orient)                           { coords.setOrient(orient);  }
-  const AICoords& getCoords() const                     { return coords;             }
-  void setCoords(const AICoords& crds)                  { coords = crds;             }
-  const svec<AnnotItemBase*>& getChildren() const       { return children;           }
+  const string & getChr() const                         { return coords.getChr();     }
+  void setChr(const string& chr)                        { coords.setChr(chr);         }
+  int getStart() const                                  { return coords.getStart();   }
+  void setStart(int start)                              { coords.setStart(start);     }
+  int getStop() const                                   { return coords.getStop();    }
+  void setStop(int stop)                                { coords.setStop(stop);       }
+  char getOrient() const                                { return coords.getOrient();  }
+  void setOrient(bool orient)                           { coords.setOrient(orient);   }
+  const Coordinate& getCoords() const                     { return coords;              }
+  void setCoords(const Coordinate& crds)                  { coords = crds;              }
+  const svec<AnnotItemBase*>& getChildren() const       { return children;            }
+  bool isReversed() const                               { return coords.isReversed(); }
   /** For Transcripts & Genes, this function returns exons belonging to them */
-  const svec<AnnotItemBase*>& getExons() const          { return exons;              }
-  const AnnotItemBase* getParent() const                { return parent;             }
+  const svec<AnnotItemBase*>& getExons() const          { return exons;               }
+  const AnnotItemBase* getParent() const                { return parent;              }
   /** Note: Needed for modifying parent use the constant version otherwise */
-  AnnotItemBase* getParentNC() const                    { return parent;             }   
-  void setParentNode(AnnotItemBase* pNode)              { parent = pNode;            }
-  bool getTransferred() const                           { return transferredCoords;  }
-  void setTransferred(bool flag)                        { transferredCoords = flag;  }
-  int  getSublist() const                               { return sublistIndex;       }
-  void setSublist(int sli)                              { sublistIndex = sli;        }
-  bool hasSublist() const                               { return (sublistIndex!=-1); }
+  AnnotItemBase* getParentNC() const                    { return parent;              }   
+  void setParentNode(AnnotItemBase* pNode)              { parent = pNode;             }
+  bool getTransferred() const                           { return transferredCoords;   }
+  void setTransferred(bool flag)                        { transferredCoords = flag;   }
+  int  getSublist() const                               { return sublistIndex;        }
+  void setSublist(int sli)                              { sublistIndex = sli;         }
+  bool hasSublist() const                               { return (sublistIndex!=-1);  }
   virtual bool isSameOrient(AnnotItemBase* other)const  { return coords.isSameOrient(other->getCoords());   } 
   bool contains(const AnnotItemBase& other) const       { return( getCoords().contains(other.getCoords())); }
   /** Checks if the whole of the given item falls within one intronic/intergenic region */
@@ -154,7 +92,7 @@ public:
   int findLength() const { return coords.findLength(); }
 
   // Following functions useful for children
-  virtual bool isExon()const                            { return false; }
+  virtual bool isCodingExon()const                            { return false; }
   virtual AnnotField getType()const                     { return NONE;  } 
   virtual const string getCategory()const               { return "";    }
   virtual const string getParentTransId()const          { return "";    }
@@ -185,7 +123,7 @@ public:
     // Add the node 
     children.push_back(item); 
     // Add to exon list if necessary 
-    if(item->isExon()) { 
+    if(item->isCodingExon()) { 
       exons.push_back(item); 
     }
   }
@@ -196,7 +134,7 @@ public:
    * as part of the TransAnnotation class
    * Returns flag signifying whether the new coordinates were accepted
    */
-  bool transCoords(const AICoords& transCoords);
+  bool transCoords(const Coordinate& transCoords);
  
   /** 
    * Creates a string containing the details of the object
@@ -207,7 +145,7 @@ public:
   virtual string toString(char sep) const;
                 
  protected:
-  AICoords coords;                 /// Coordinates (start/stop location, orientation, and chromosome)
+  Coordinate coords;                 /// Coordinates (start/stop location, orientation, and chromosome)
   svec<AnnotItemBase*> children;   /// list of pointers to Transcripts or AnnotationItems (used only for Gene and Transcript)
   svec<AnnotItemBase*> exons;      /// list of pointers to Exons that this item constitutes of (only applies to Transcripts) 
   AnnotItemBase* parent;           /// Pointer to parent (either a gene for transcripts or a transcript for annoItems)
@@ -228,9 +166,9 @@ public:
   AnnotItem(): AnnotItemBase(), category(""), parentTransId(""), parentGeneId(""), aux() {}
 
   // Ctor used for creating dummy object for comparison of coordinates
-  AnnotItem(AICoords crds):AnnotItemBase(crds), category(), aux() {}
+  AnnotItem(Coordinate crds):AnnotItemBase(crds), category(), aux() {}
 
-  AnnotItem(AICoords crds, const string& ctgry, const string& tId,
+  AnnotItem(Coordinate crds, const string& ctgry, const string& tId,
             const string& gId, const AIAux& ax)
            :AnnotItemBase(crds), category(ctgry), parentTransId(tId),
             parentGeneId(gId), aux(ax) {}
@@ -244,10 +182,10 @@ public:
     category      = cat;
     parentTransId = tId; 
     parentGeneId  = gId; 
-    coords        = AICoords(ch, ori, str, stp);
+    coords        = Coordinate(ch, ori, str, stp);
   }
   virtual AnnotField getType()const      { return AITEM;} 
-  virtual bool isExon()const             { return (getCategory()=="exon"); }
+  virtual bool isCodingExon()const             { return (getCategory()=="CDS"); }
 
   /** 
    * Creates a string containing the details of the object
@@ -274,7 +212,7 @@ class Transcript: public AnnotItemBase
 public:
   Transcript(): AnnotItemBase(), bioType(), transId() {} 
 
-  Transcript(AICoords crds, const string& bType,
+  Transcript(Coordinate crds, const string& bType,
              const string& tId)
              : AnnotItemBase(crds), bioType(bType),
                transId(tId) {} 
@@ -287,7 +225,7 @@ public:
 	   int stp, bool  ori, const string& tId) {
     bioType   = bType;
     transId   = tId;
-    coords    = AICoords(ch, ori, str, stp);
+    coords    = Coordinate(ch, ori, str, stp);
   }
 
   virtual void reportOverlaps(const Annotation& tA, ostream& sout)const;
@@ -307,14 +245,14 @@ class Gene: public AnnotItemBase
 public:
   Gene(): geneId("") {}
 
-  Gene(const AICoords& crds, const string& gId)
+  Gene(const Coordinate& crds, const string& gId)
       : AnnotItemBase(crds), geneId(gId) {} 
 
   const string getId()const          { return geneId; }
   virtual AnnotField getType()const  { return GENE;   } 
   void set(const string& ch, int str, int stp,
            bool  ori, const string& gId) {
-    coords   = AICoords(ch, ori, str, stp);
+    coords   = Coordinate(ch, ori, str, stp);
     geneId   = gId;
   }
   virtual void reportOverlaps(const Annotation& tA, ostream& sout)const;
@@ -333,14 +271,14 @@ class Locus: public AnnotItemBase
 public:
   Locus() {}
 
-  Locus(const AICoords& crds)
+  Locus(const Coordinate& crds)
       : AnnotItemBase(crds) {} 
 
   virtual AnnotField getType()const  { return LOCUS; } 
 
   void set(const string& ch, int str, int stp,
            bool  ori) {
-    coords   = AICoords(ch, ori, str, stp);
+    coords   = Coordinate(ch, ori, str, stp);
   }
 };
 
@@ -412,7 +350,7 @@ public:
    */
   int getAnyOverlapping(AnnotItemBase* subject, AnnotField mode, svec<AnnotItemBase*>& results) const;     
   /** Same as other overload but with AICoord as input instead of AnnotItem */
-  int getAnyOverlapping(const AICoords& subject, AnnotField mode, svec<AnnotItemBase*>& results) const;     
+  int getAnyOverlapping(const Coordinate& subject, AnnotField mode, svec<AnnotItemBase*>& results) const;     
 
   /** 
    * Return objects fully containing the given coordinates in the results object passed in by user.
@@ -422,7 +360,7 @@ public:
    */
   int getFullyContained(AnnotItemBase* subject, AnnotField mode, svec<AnnotItemBase*>& results) const;     
   /** Same as other overload but with AICoord as input instead of AnnotItem */
-  int getFullyContained(const AICoords& subject, AnnotField mode, svec<AnnotItemBase*>& results) const;     
+  int getFullyContained(const Coordinate& subject, AnnotField mode, svec<AnnotItemBase*>& results) const;     
  
   /** Returns number of items of the same type as the query where all or some
    * of  their child nodes have overlaps. The overlapMode parameter determines

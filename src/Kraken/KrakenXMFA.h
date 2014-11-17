@@ -14,7 +14,7 @@ public:
   void convertXMFA(const string& inFile, const string& outDir, svec<string>& outFiles); 
 
 private:
-  void outSatsumaBlocks(const map<string, AICoords>& coords, map<string, string>& outStreams); 
+  void outSatsumaBlocks(const map<string, Coordinate>& coords, map<string, string>& outStreams); 
 };
 
 #endif //_KRAKEN_XMFA_H_

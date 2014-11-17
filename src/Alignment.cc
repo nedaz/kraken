@@ -8,50 +8,100 @@
 #include "src/Alignment.h"
 
 //=====================================================================
+void Alignment::getSeqAuxInfo(int& tOrigOffset, int& qOrigOffset, char& tSeqStrand, char& qSeqStrand) {
+  tOrigOffset      = targetOrigOffset;              
+  qOrigOffset      = queryOrigOffset;          
+  tSeqStrand       = targetSeqStrand;        
+  qSeqStrand       = querySeqStrand;              
+} 
 
-void Alignment::print(int outputType, double pValLimit, ostream& sout, int screenWidth) const{
+void Alignment::setSeqAuxInfo(int tOrigOffset, int qOrigOffset, char tSeqStrand, char qSeqStrand) {
+  targetOrigOffset = tOrigOffset;              
+  queryOrigOffset  = qOrigOffset;          
+  targetSeqStrand  = tSeqStrand;        
+  querySeqStrand   = qSeqStrand;              
+} 
+
+void Alignment::print(int outputType, double pValLimit, ostream& sout, int screenWidth, bool withInfo) const{
   switch(outputType) {
-    case 0: printFull(pValLimit, sout, screenWidth); break;
-    case 1: printInfoCSV(sout);
+    case 0: printFull(pValLimit, sout, screenWidth, withInfo); break;
+    case 1: printInfoCSV(sout); break;
+    case 2: printMFAFormat(pValLimit, sout, screenWidth); 
   }
 }
 
-string Alignment::toString(int screenWidth) const{
+int CountValid(const string & s)
+{
+  int k = 0;
+  for (int i=0; i<s.length(); i++) {
+    if (s[i] != '-')
+      k++;
+  }
+  return k;
+} 
+
+string Alignment::toString(int screenWidth, bool withInfo) const{
   stringstream sout;
-  sout << "**********************************************"              << endl
-       << "Target sequence size:             " << getTargetLength()        << endl
-       << "Query sequence size:              " << getQueryLength()         << endl
-       << "Target offset:                    " << getTargetOffset()     << endl
-       << "Query offset:                     " << getQueryOffset()      << endl 
-       << "Target aligned basepairs:         " << getTargetBaseAligned()<< endl
-       << "Query aligned basepairs:          " << getQueryBaseAligned() << endl
-       << "Raw Score:                        " << getRawScore()         << endl 
-       << "Identity score:                   " << calcIdentityScore()   << endl
-       << "Total Edit Count                  " << calcEditCount()       << endl
-       << "Mean Contiguity length            " << calcMeanContig()      << endl
-       << "Mod-Smith-waterman score:         " << calcModSWScore()      << endl
-       << "Significance P-value:             " << calcPVal()            << endl
-       << "***********************************************"             << endl;
+  if(withInfo) {
+    sout << "**********************************************"              << endl
+         << "Target sequence size:             " << getTargetLength()     << endl
+         << "Query sequence size:              " << getQueryLength()      << endl
+         << "Target offset:                    " << getTargetOffset()     << endl
+         << "Query offset:                     " << getQueryOffset()      << endl 
+         << "Target aligned basepairs:         " << getTargetBaseAligned()<< endl
+         << "Query aligned basepairs:          " << getQueryBaseAligned() << endl
+         << "Raw Score:                        " << getRawScore()         << endl 
+         << "Identity score:                   " << calcIdentityScore()   << endl
+         << "Total Edit Count                  " << calcEditCount()       << endl
+         << "Mean Contiguity length            " << calcMeanContig()      << endl
+         << "Mod-Smith-waterman score:         " << calcModSWScore()      << endl
+         << "Significance P-value:             " << calcPVal()            << endl
+         << "***********************************************"             << endl;
+  } 
+  // Let's not count gaps.
+  int countQ = getQueryOffset();
+  int countT = getTargetOffset();
   for( int i=0; i<=(int)(matchesStr.size()/screenWidth); i++) {
     string query = queryStr.substr(i*screenWidth,screenWidth); 
-    sout << "Query: " << setw(6) << getQueryOffset()+(i*screenWidth) << " "
+    sout << "Query: " << setw(6) << countQ  << " "
          << query << " " 
-         << getQueryOffset()+(i*screenWidth)+min(screenWidth,(int)query.size()) << endl
+         << countQ + CountValid(query)-1 << endl
          << setw(14) << " " << matchesStr.substr(i*screenWidth,screenWidth) << endl
-         << "Sbjct: " << setw(6) << getTargetOffset()+(i*screenWidth) << " " 
+         << "Sbjct: " << setw(6) << countT << " " 
          << targetStr.substr(i*screenWidth,screenWidth) << " " 
-         << getTargetOffset()+(i*screenWidth)+min(screenWidth,(int)query.size()) << endl
+         << countT + CountValid(targetStr.substr(i*screenWidth,screenWidth)) - 1 << endl
          << endl << endl << endl;
+    countQ += CountValid(query);
+    countT += CountValid(targetStr.substr(i*screenWidth,screenWidth));
   }
   return sout.str();
 }
 
-void Alignment::printFull(double pValLimit, ostream& sout, int screenWidth) const{
+void Alignment::printFull(double pValLimit, ostream& sout, int screenWidth, bool withInfo) const{
   if(calcPVal()>pValLimit) { return; } // Significance is less than min required
-  sout << toString(screenWidth);
+  sout << toString(screenWidth, withInfo);
 }
 
-void Alignment::printInfoCSV( ostream& sout) const{
+void Alignment::printMFAFormat(double pValLimit, ostream& sout, int screenWidth) const {
+  int countQ = getQueryOffset()  + targetOrigOffset;
+  int countT = getTargetOffset() + queryOrigOffset;
+  for( int i=0; i<=(int)(matchesStr.size()/screenWidth); i++) {
+    string query = queryStr.substr(i*screenWidth,screenWidth); 
+    int setwSize = max(getQuerySeq().Name().size(), getTargetSeq().Name().size()); 
+    sout << std::left << setw(setwSize) << getQuerySeq().Name() << " " <<  targetSeqStrand  << " "  << std::right << setw(10) << countQ  << " "
+         << query << " " 
+         << countQ + CountValid(query)-1 << endl
+         << std::left << setw(setwSize+14) << " " << matchesStr.substr(i*screenWidth,screenWidth) << endl
+         << std::left << setw(setwSize) << getTargetSeq().Name() << " " <<  querySeqStrand << " " << std::right  << setw(10) << countT << " " 
+         << targetStr.substr(i*screenWidth,screenWidth) << " " 
+         << countT + CountValid(targetStr.substr(i*screenWidth,screenWidth)) - 1 << endl
+         << endl << endl << endl;
+    countQ += CountValid(query);
+    countT += CountValid(targetStr.substr(i*screenWidth,screenWidth));
+  }
+} 
+
+void Alignment::printInfoCSV( ostream& sout) const {
   sout<< getTargetOffset()     <<","
       << getQueryOffset()      <<","
       << getTargetBaseAligned()<<","

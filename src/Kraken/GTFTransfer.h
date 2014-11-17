@@ -32,7 +32,7 @@ public:
   }
 
   /** The coordinates of this annotation are translated into the space of the given destination specie destSpecieId*/
-  const string& getTranslateSpace()    { return translateSpace; }
+  const string& getTranslateSpace()  { return translateSpace;                }
   bool hasBeenTranslated()           { return (translateSpace != speciesId); } 
 
   void translateCoordinates(const string& destSpecieId, Kraken& mapper, bool localAlign); 
@@ -40,7 +40,7 @@ public:
   
 private:
   /**   */
-  void updateAnnotItem(AnnotItemBase* item, const AICoords& tCoord); 
+  void updateAnnotItem(AnnotItemBase* item, const Coordinate& tCoord); 
 
   string translateSpace; /// The genomeId of the annotaion to which this  has been translated to 
 };
@@ -59,6 +59,10 @@ public:
     KrakenConfig config(&mapper);
     config.Configure(configFile);
   } 
+
+  void SetPValThresh(double p)     { mapper.SetPValThresh(p);     }
+  void SetMinIdent(double d)       { mapper.SetMinIdent(d);       }
+  void SetTransSizeLimit(double l) { mapper.SetTransSizeLimit(l); }
 
   virtual void reportAllOverlaps(const Annotation& qA, const Annotation& tA, 
                          AnnotField qFieldType, ostream& sout);

@@ -8,67 +8,6 @@
 
 
 //======================================================
-void AICoords::set(const string& ch, bool ori,
-         int str, int stp) {
-  setChr(ch);
-  setOrient(ori);
-  setStart(str);
-  setStop(stp);
-}
-
-void AICoords::set(const string& ch, char ori,
-         int str, int stp) {
-  setChr(ch);
-  setOrient(ori);
-  setStart(str);
-  setStop(stp);
-}
-
-bool AICoords::contains(const AICoords& other) const {
-  return( (other.getChr() == getChr())
-          && ( (other.getStart()>=getStart())&& (other.getStop()<=getStop())
-          )
-        );
-}
-
-bool AICoords::isSameCoords(const AICoords& other) const {
-  return( (other.getChr() == getChr())
-          && ( (other.getStart()==getStart())&& (other.getStop()==getStop())
-          )
-        );
-}
-
-bool AICoords::hasOverlap(const AICoords& other) const {
- //For any overlap either the start or stop of one of the coords has to lie within the other coord
-  return( (other.getChr() == getChr())
-          && !( (other.getStart()>getStop())|| (other.getStop()<getStart())
-          )
-        );
-}
-
-int AICoords::findOverlapCnt(const AICoords& other) const {
-  if(!hasOverlap(other) || !isSameOrient(other)) { return .0; }
-  int overlap   = min(getStop(), other.getStop()) - max(getStart(), other.getStart()) + 1;
-  return overlap; 
-}
-
-string AICoords::toString(char sep) const {
-  stringstream outStream;
-  outStream << getChr() << sep << getStart() << sep << getStop() << sep << getOrient(); 
-  return outStream.str();
-}
-
-string AICoords::toString_noOrient(char sep) const {
-  stringstream outStream;
-  outStream << getChr() << sep << getStart() << sep << getStop(); 
-  return outStream.str();
-}
-
-void AICoords::setFromTarget(const AlignmentBlock& b) {
-  set(b.getTargetChrom(), b.getOrient(), b.getTargetStart(), b.getTargetStop());
-}
-
-//======================================================
 
 string AnnotItemBase::toString(char sep) const {
   stringstream outStream;
@@ -78,7 +17,7 @@ string AnnotItemBase::toString(char sep) const {
   return outStream.str();
 } 
 
-bool AnnotItemBase::transCoords(const AICoords& transCoords) {
+bool AnnotItemBase::transCoords(const Coordinate& transCoords) {
   if(!getTransferred()) { //First time being transferred
     setCoords(transCoords);
     setTransferred(true);
@@ -101,7 +40,7 @@ bool AnnotItemBase::transCoords(const AICoords& transCoords) {
 bool AnnotItemBase::isIntronic(const AnnotItemBase& other) const {
   // This function cannot be used for AITEM type as it has no children & intronic region is undefined
   if(other.getType()==AITEM || getChildren().isize()==0) { return false; }
-  AICoords rollingCoords(other.getChildren()[0]->getCoords());
+  Coordinate rollingCoords(other.getChildren()[0]->getCoords());
   for(int i=0; i<other.getChildren().isize()-1; i++) {
     rollingCoords.setStart(other.getChildren()[i]->getStop()+1);
     rollingCoords.setStop(other.getChildren()[i+1]->getStart()-1);
@@ -117,8 +56,7 @@ string AnnotItem::toString(char sep) const {
   string bioType  = getParent()->getBioType();
   string transId  = getParentTransId();
   string geneId   = getParentGeneId();
-  //string transed  = (transferredCoords?"true":"false");
-
+  // Coordinates are published in 1-based (GTF format)
   char fill = '.';
   outStream << getChr() << sep << bioType << sep << getCategory() << sep 
             << getStart()+1 << sep << getStop()+1
@@ -193,7 +131,7 @@ void Transcript::reportOverlaps(const Annotation& tA, ostream& sout)const {
     tA.getAnyOverlapping(subjectChildren[ch]->getCoords(), static_cast<AnnotField>(getType()-1), oChildren); 
     for (int j=0; j<oChildren.isize(); j++) {
       // If AnnotationItems are AITEM don't count if not an exon
-      if(oChildren[j]->getType()==AITEM && !oChildren[j]->isExon()) { continue; } 
+      if(oChildren[j]->getType()==AITEM && !oChildren[j]->isCodingExon()) { continue; } 
       counts[oChildren[j]->getParent()]++;
     }
   }
@@ -341,7 +279,7 @@ void Annotation::readGTF(const string& fileName, const string& specie) {
     }
 
     // 1. New Annotation Item
-    AICoords crds = AICoords(chr, orient, start, stop);
+    Coordinate crds = Coordinate(chr, orient, start, stop);
     aItem         = addAnnotItem(AnnotItem(crds, category, transId, geneId, aux));
     if(!aItem) { 
       FILE_LOG(logWARNING) << "Could not allocate annotation item: " << crds.toString('\t');
@@ -356,7 +294,7 @@ void Annotation::readGTF(const string& fileName, const string& specie) {
       }
 
       const string& bioType = parser.AsString(1);
-      curr_trans = Transcript(AICoords(chr, orient, start, stop),
+      curr_trans = Transcript(Coordinate(chr, orient, start, stop),
                               bioType, transId);
       curr_trans.addNode(aItem); 
     } else {
@@ -368,7 +306,7 @@ void Annotation::readGTF(const string& fileName, const string& specie) {
       if(curr_gene.getId() != "") { // Don't add if curr_gene has not been set yet
         addGene(curr_gene);
       }
-      curr_gene = Gene(AICoords(chr, orient, start, stop), geneId);
+      curr_gene = Gene(Coordinate(chr, orient, start, stop), geneId);
     } 
   }
 
@@ -459,7 +397,7 @@ AnnotField mode, svec<AnnotItemBase*>& results) const {
   return results.isize();
 }
 
-int Annotation::getAnyOverlapping(const AICoords& subject, 
+int Annotation::getAnyOverlapping(const Coordinate& subject, 
 AnnotField mode, svec<AnnotItemBase*>& results) const {
   AnnotItemBase tempItem(subject); // Make an object with the coordinates to pass onto NClist
   getNCListByCoord(mode).getAnyOverlapping(&tempItem, results); // Return results
@@ -486,7 +424,7 @@ AnnotField mode, svec<AnnotItemBase*>& results) const {
   return results.isize();
 }
 
-int Annotation::getFullyContained(const AICoords& subject, 
+int Annotation::getFullyContained(const Coordinate& subject, 
 AnnotField mode, svec<AnnotItemBase*>& results) const {
   AnnotItemBase tempItem(subject); // Make an object with the coordinates to pass onto NClist
   return getFullyContained(&tempItem, mode, results); // Return size of results 

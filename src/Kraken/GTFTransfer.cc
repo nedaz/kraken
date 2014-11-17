@@ -19,7 +19,7 @@ void TransAnnotation::translateCoordinates( const string& targetSpecieId,
   for (int i=0; i<annotItems.isize(); i++) {
     FILE_LOG(logDEBUG)  << "Translating annotation item: " << i;  
     FILE_LOG(logDEBUG1) << annotItems[i]->toString('\t');  
-    AICoords res;
+    Coordinate res;
     bool bOK = mapper.Find(annotItems[i]->getCoords(), this->getTranslateSpace(),
                            targetSpecieId, localAlign, res);
     if (bOK) {
@@ -41,7 +41,7 @@ void TransAnnotation::translateCoordinates( const string& targetSpecieId,
   translateSpace = targetSpecieId; 
 }
 
-void TransAnnotation::updateAnnotItem(AnnotItemBase* item, const AICoords& tCoord) { 
+void TransAnnotation::updateAnnotItem(AnnotItemBase* item, const Coordinate& tCoord) { 
   // Update parent transcript and parent gene
   AnnotItemBase* parentTrans = item->getParentNC();
   AnnotItemBase* parentGene  = parentTrans->getParentNC();

@@ -63,7 +63,7 @@ void GenomeWideMap::MergeBlocks()
 }
 
 //TODO Kraken functions are not const where they should be, underlying FuzzySearch.. functions need to be fixed first
-bool GenomeWideMap::Map(const AICoords & lookup, svec<AICoords>& results)
+bool GenomeWideMap::Map(const Coordinate & lookup, svec<Coordinate>& results)
 {
   AlignmentBlock tmp;
   tmp.set(lookup.getChr(), lookup.getStart(), lookup.getStart());
@@ -125,7 +125,7 @@ bool GenomeWideMap::Map(const AICoords & lookup, svec<AICoords>& results)
   }
   if(split) {
     int size = lookup.getStop() - lookup.getStart();
-    AICoords result;
+    Coordinate result;
     SetAnchors(lookup, begin, end, 0, size, result);
     results.push_back(result);
     SetAnchors(lookup, begin, end, size, 0, result);
@@ -133,16 +133,16 @@ bool GenomeWideMap::Map(const AICoords & lookup, svec<AICoords>& results)
     return true;
   } 
 
-  AICoords result;
+  Coordinate result;
   SetAnchors(lookup, begin, end, 0, 0, result);
   results.push_back(result);
   
   return true;
 }
 
-void GenomeWideMap::SetAnchors(const AICoords & lookup, const AlignmentBlock& begin, 
+void GenomeWideMap::SetAnchors(const Coordinate & lookup, const AlignmentBlock& begin, 
                                const AlignmentBlock& end, int startExtend, int stopExtend,
-                               AICoords & result) {
+                               Coordinate & result) {
 
   AlignmentBlock beginAdj(begin), endAdj(end); //Blocks adjusted by considering reversed start/stop
   if(begin.isReversed() && end.isReversed()) {
@@ -268,9 +268,9 @@ void Kraken::ReadGenome(const string & fileName, const string & name)
     UniqueSort(m_seq);
 }
  
-bool Kraken::MapThroughRoute(const Route & route, svec<AICoords>& results, const AICoords & lookup)
+bool Kraken::MapThroughRoute(const Route & route, svec<Coordinate>& results, const Coordinate & lookup)
 {
-  AICoords tempLookup = lookup;
+  Coordinate tempLookup = lookup;
   FILE_LOG(logDEBUG4) << "Route: count=" << route.GetCount();
   int i;
   for (i=0; i<route.GetCount(); i++) {
@@ -285,7 +285,7 @@ bool Kraken::MapThroughRoute(const Route & route, svec<AICoords>& results, const
     const string & target = route.Destination(i);
     FILE_LOG(logDEBUG3) << "Mapping " << source << " and " << target;
     int index = Index(source, target);
-    AICoords tmp;
+    Coordinate tmp;
     if (!m_maps[index].Map(tempLookup, results)) {
       FILE_LOG(logDEBUG2) << "No map found between " << source << " and " << target;
       return false;
@@ -312,9 +312,9 @@ const GenomeWideMap & Kraken::GetMap(const string & name) const
   return m_maps[index];
 }
 
-bool Kraken::FindWithEdges(const AICoords& lookup, const string & source,
+bool Kraken::FindWithEdges(const Coordinate& lookup, const string & source,
                    const string & target, bool lAlign, int edgeLength,
-                   AICoords& result) 
+                   Coordinate& result) 
 {
     int from = lookup.getStart();
     int to   = lookup.getStop();
@@ -329,12 +329,12 @@ bool Kraken::FindWithEdges(const AICoords& lookup, const string & source,
     }
 
     FILE_LOG(logDEBUG2) << "Mapping (left): ";
-    AICoords s, resLeft;
+    Coordinate s, resLeft;
     s.set(lookup.getChr(), true, from, min(from + edgeLength, to));
     bool bLeft = Find(s, source, target, lAlign, resLeft);
 
     FILE_LOG(logDEBUG3) << "Mapping (right): ";
-    AICoords resRight;
+    Coordinate resRight;
     s.set(lookup.getChr(), true,  max(to - edgeLength, from), to);
     bool bRight = Find(s, source, target, lAlign, resRight);
 
@@ -380,9 +380,9 @@ bool Kraken::FindWithEdges(const AICoords& lookup, const string & source,
     return true;
 }
 
-bool Kraken::Find(const AICoords & lookup, 
+bool Kraken::Find(const Coordinate & lookup, 
                const string & source, const string & target,
-               bool lAlign, AICoords & result)
+               bool lAlign, Coordinate & result)
 {
   Route route;
   if(! m_router.FindRoute(route, source, target, *this)) {
@@ -390,7 +390,7 @@ bool Kraken::Find(const AICoords & lookup,
     return false;
   }
 
-  svec<AICoords> results;
+  svec<Coordinate> results;
   if(!MapThroughRoute(route, results, lookup)) {
     FILE_LOG(logDEBUG2) << "Mapping failed!!!";
     return false;
@@ -425,9 +425,9 @@ bool Kraken::Find(const AICoords & lookup,
   return ExhaustAlign(trueDestination, sourceSeq, slack, 0.3, lAlign, result);
 }
  
-bool Kraken::RoughMap(const AICoords& lookup, const string& source,
+bool Kraken::RoughMap(const Coordinate& lookup, const string& source,
                    const string& target, DNAVector& sourceSeq, DNAVector& targetSeq, 
-                   int& maxPos, float& maxVal, int& len, AICoords& result) {
+                   int& maxPos, float& maxVal, int& len, Coordinate& result) {
   int sourceIndex = Genome(source);
   int targetIndex = Genome(target);
   const vecDNAVector & sourceGenome = m_seq[sourceIndex].DNA();
@@ -440,7 +440,7 @@ bool Kraken::RoughMap(const AICoords& lookup, const string& source,
                       << lookup.toString('\t')
                       << "Raw Destination:  " 
                       << result.toString('\t');  
-  if(!SetSequence(sourceGenome, lookup, sourceSeq)) { return false; }
+  if(!sourceGenome.SetSequence(lookup, sourceSeq)) { return false; }
   result.setStart(result.getStart() - 5000);
   result.setStop(result.getStop() + 5000);
   if(!SetSequence(targetGenome, result, targetSeq)) { return false; }
@@ -456,7 +456,7 @@ bool Kraken::RoughMap(const AICoords& lookup, const string& source,
   return true;
 }
 
-bool Kraken::SetSequence(const vecDNAVector& genome, AICoords& coords, DNAVector& resultSeq) {
+bool Kraken::SetSequence(const vecDNAVector& genome, Coordinate& coords, DNAVector& resultSeq) {
   if(!genome.HasChromosome(coords.getChr())) { 
     FILE_LOG(logWARNING) << "Check Genome data! - Chromosome: "  << coords.getChr() 
                          << " was not found in the given fasta file";
@@ -473,31 +473,18 @@ bool Kraken::SetSequence(const vecDNAVector& genome, AICoords& coords, DNAVector
     FILE_LOG(logDEBUG3) << "Limiting initial stop to fit in with chromosome."; 
     coords.setStop(genome(coords.getChr()).isize()-1);
   }
-  resultSeq.SetToSubOf(genome(coords.getChr()), coords.getStart(), coords.getStop()-coords.getStart()+1);
+  bool set = resultSeq.SetToSubOf(genome(coords.getChr()), coords.getStart(), coords.getStop()-coords.getStart()+1);
   if (coords.isReversed())
     resultSeq.ReverseComplement();
-  return true;
-}
-
-bool Kraken::SetSequence(const vecDNAVector& genome, const AICoords& coords, DNAVector& resultSeq) {
-  if(!genome.HasChromosome(coords.getChr())) { 
-    FILE_LOG(logWARNING) << "Check Genome data! - Chromosome: " << coords.getChr() 
-                         << " was not found in the given fasta file";
-    return false; 
-  }   
-  resultSeq.SetToSubOf(genome(coords.getChr()), coords.getStart(), coords.getStop()-coords.getStart()+1);
-  if (coords.isReversed())
-    resultSeq.ReverseComplement();
-  return true;
+  return set;
 }
 
 bool Kraken::RoughAlign(DNAVector& q, DNAVector& t, 
-                      int& maxPos, float& maxVal, int& len, AICoords& result) {
-//TODO t->sourceSeq q->targetSeq
+                      int& maxPos, float& maxVal, int& len, Coordinate& result) {
 
-  const int BLOCK_LIMIT   = 16384;
+  const int BLOCK_LIMIT   = 163840;
   const int BLOCK_OVERLAP = BLOCK_LIMIT/10;
-  if(t.isize() > BLOCK_LIMIT*10) {  
+  if(t.isize() > m_transSizeLimit_p) {  
       FILE_LOG(logWARNING) << "Requested region to be mapped: " 
                            << t.isize()<<" is too large";
       return false;
@@ -579,7 +566,7 @@ void Kraken::Ccorrelate(const DNAVector& q, const DNAVector& t, double size,
 
 bool Kraken::ExhaustAlign(DNAVector& trueDestination, DNAVector& source,
                           int slack, float alignedRatio, 
-                          bool localAlign, AICoords& result) {
+                          bool localAlign, Coordinate& result) {
   Cola aligner;
   int bound;
   // Optimal align with a band of slack+5% of the query sequence size using Smithwaterman-gap-affine
@@ -610,8 +597,7 @@ bool Kraken::ExhaustAlign(DNAVector& trueDestination, DNAVector& source,
   }
 
   double ratio = (double)pAlign.getTargetBaseAligned()/(double)source.isize();
-  //TODO parametrise 
-  if (ratio<alignedRatio || pAlign.calcPVal()>0.0001 || pAlign.calcIdentityScore()<m_minIdent) {
+  if (ratio<alignedRatio || pAlign.calcPVal()>m_pValThresh_p || pAlign.calcIdentityScore()<m_minIdent_p) {
     FILE_LOG(logDEBUG1) << "Rejecting...based on exhaustive alignment - Code7";
     return false;
   }

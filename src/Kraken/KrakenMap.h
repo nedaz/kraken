@@ -22,7 +22,7 @@ public:
   }
 
   void Read(const string & fileName, const string & source, const string & target, bool flip, double distance = 0.5);
-  bool Map(const AICoords& lookup, svec<AICoords>& results);
+  bool Map(const Coordinate& lookup, svec<Coordinate>& results);
 
   bool operator < (const GenomeWideMap & m) const {
     if (m_source != m.m_source) {
@@ -42,9 +42,9 @@ public:
   const string & Origin() const {return m_source;}
   double Distance() const {return m_distance;}
 private:
-  void SetAnchors(const AICoords & lookup, const AlignmentBlock& beginBlock, 
+  void SetAnchors(const Coordinate & lookup, const AlignmentBlock& beginBlock, 
                   const AlignmentBlock& endBlock, int startExtend, int stopExtend,
-                  AICoords & result); 
+                  Coordinate & result); 
   void MergeBlocks();
 
 
@@ -146,7 +146,9 @@ class Kraken
   friend class RouteFinder;
  public:
   Kraken() {
-    m_minIdent = 0.;
+    m_pValThresh_p     = 0.0001;
+    m_minIdent_p       = 0.;
+    m_transSizeLimit_p = 163840;
   }
 
   void Allocate(const string & source, const string & target, double distance = 0.5);
@@ -155,37 +157,38 @@ class Kraken
   void ReadMap(const string & fileName, const string & source, const string & target, double distance = 0.5);
   void ReadGenome(const string & fileName, const string & name);
 
-  int GenomeCount() const                   {return m_seq.isize();}
+  int GenomeCount() const                   {return m_seq.isize();  }
   const string & GenomeName(int i) const    {return m_seq[i].Name();}
-  const svec<GenomeSeq>& GetGenomes() const {return m_seq;}
+  const svec<GenomeSeq>& GetGenomes() const {return m_seq;          }
   const GenomeWideMap & GetMap(const string & source) const;
   
-  bool Find(const AICoords & lookup, 
+  bool Find(const Coordinate & lookup, 
 	    const string & source, 
 	    const string & target,
 	    bool  lAlign, 
-            AICoords& result);
+            Coordinate& result);
 
-  bool FindWithEdges(const AICoords& lookup, const string & source,
+  bool FindWithEdges(const Coordinate& lookup, const string & source,
                      const string & target, bool lAlign,
-                     int edgeLength, AICoords& result);
+                     int edgeLength, Coordinate& result);
 
-  void SetMinIdent(double d) {m_minIdent = d;}
+  void SetPValThresh(double p)     { m_pValThresh_p = p;     }
+  void SetMinIdent(double d)       { m_minIdent_p = d;       }
+  void SetTransSizeLimit(double l) { m_transSizeLimit_p = l; }
 
 
  private:
-  bool RoughMap(const AICoords& lookup, const string& source, const string& target,
+  bool RoughMap(const Coordinate& lookup, const string& source, const string& target,
                 DNAVector& sourceSeq, DNAVector& targetSeq, int& maxPos,
-                float& maxVal, int& len, AICoords& result); 
-  bool SetSequence(const vecDNAVector& genome, AICoords& coords, DNAVector& resultSeq);
-  bool SetSequence(const vecDNAVector& genome, const AICoords& coords, DNAVector& resultSeq);
-  bool RoughAlign(DNAVector& target, DNAVector& source, int& maxPos, float& maxVal, int& len, AICoords& result); 
+                float& maxVal, int& len, Coordinate& result); 
+  bool SetSequence(const vecDNAVector& genome, Coordinate& coords, DNAVector& resultSeq);
+  bool RoughAlign(DNAVector& target, DNAVector& source, int& maxPos, float& maxVal, int& len, Coordinate& result); 
   void Ccorrelate(const DNAVector& q, const DNAVector& t, double size, float& maxValOut, int& maxPosOut); 
-  bool ExhaustAlign(DNAVector& trueDestination, DNAVector& source, int slack, float alignedRatio, bool localAlign, AICoords& result);
+  bool ExhaustAlign(DNAVector& trueDestination, DNAVector& source, int slack, float alignedRatio, bool localAlign, Coordinate& result);
   int  Index(const string & source, const string & target);
   int  Genome(const string & name);
   
-  bool MapThroughRoute(const Route & route, svec<AICoords>& results, const AICoords & lookup);
+  bool MapThroughRoute(const Route & route, svec<Coordinate>& results, const Coordinate & lookup);
 
 
   svec<GenomeSeq> m_seq;
@@ -194,7 +197,9 @@ class Kraken
   MultiSizeXCorr m_xc;
   RouteFinder m_router;
 
-  double m_minIdent;
+  double m_pValThresh_p;     /// Threshodl for acceptable p-value of the sequence alignment for translation
+  double m_minIdent_p;       /// Minimum acceptable identity of sequences for translation
+  double m_transSizeLimit_p; /// Parameter for the limit on the size of blocks that can be translated
 };
 
 #endif // KRAKENMAP_H

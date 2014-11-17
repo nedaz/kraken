@@ -29,12 +29,12 @@ public:
   // Ctor  - Can be used as default with no params or given as many of the params in order as available
   AlignmentInfo(int tl=-1, int ql=-1, int to=-1, int qo=-1, 
                 int tba=-1, int qba=-1, int tm=-1, int al=0, int sws= -1,
-                double rs=-1, double rt=-1, double rtc=-1, double id=-1)
+                double rs=-1, double rt=-1, double rtc=-1, double id=-1, double eval=-1)
     :tLen(tl), qLen(ql),
      tOffset(to), qOffset(qo), tBaseAligned(tba),
      qBaseAligned(qba), baseMatched(tm), alignmentLen(al), 
      smithWatermanScore(sws), rawScore(rs),
-     runtime(rt), runtimeCoef(rtc), identity(id) {}
+     runtime(rt), runtimeCoef(rtc), identity(id), eValue(eval) {}
 
   ~AlignmentInfo() {} 
 
@@ -54,6 +54,7 @@ public:
   double getRawScore()  const       { return rawScore;                        }
   double getRuntime() const         { return runtime;                         }
   double getRuntimeCoef()const      { return runtimeCoef;                     }
+  double getEValue()const           { return eValue;                          }
   double getIdentity()              { return (identity==-1)?identity=calcIdentity():identity; }
 
   /** 
@@ -84,6 +85,7 @@ protected:
   double runtime;         /// Time take to find the alignment (in seconds)
   double runtimeCoef;     /// Factor by which runtime increases as opposed to basic SW
   double identity;        /// The number of matches over the entire length of the alignment
+  double eValue;          /// The expected chance of obtaining such alignment by chance (For database search)
 };
 
 //===================================================================
@@ -101,11 +103,14 @@ public:
             const string& tStr = string(), const string& qStr = string(), const string& mStr = string())
     :targetSeq(tSeq), querySeq(qSeq), info(inf), targetStr(tStr), 
      queryStr(qStr), matchesStr(mStr) ,
-     targetIdxsInQuery(tSeq.size(), -1), queryIdxsInTarget(qSeq.size(), -1) {
-    
+     targetIdxsInQuery(tSeq.size(), -1), queryIdxsInTarget(qSeq.size(), -1), 
+     targetOrigOffset(0) , queryOrigOffset(0), targetSeqStrand('+'), querySeqStrand('+') {
+
     info.qLen = qSeq.size();
     info.tLen = tSeq.size();
   }
+
+  virtual ~Alignment() {} 
 
   /** Get information available on the info object directly from the Alignment class */
   int getTargetLength() const       { return info.getTargetLength();      }
@@ -122,6 +127,7 @@ public:
   double getRawScore() const        { return info.getRawScore();          }
   double calcIdentityScore() const  { return info.calcIdentity();         }
   double getIdentityScore()         { return info.getIdentity();          }
+  double getEValue()const           { return info.getEValue();            }
   double getRuntime() const         { return info.getRuntime();           }
   double getRuntimeCoef()const      { return info.getRuntimeCoef();       }
 
@@ -129,12 +135,18 @@ public:
   void setRuntime(double rt)        { info.runtime = rt; }
   void setRuntimeFactor(double rtc) { info.runtimeCoef = rtc; }
 
+  /** Getter function for the auxillary information related to the query/target sequences */
+  void getSeqAuxInfo(int& tOrigOffset, int& qOrigOffset, char& tSeqStrand, char& qSeqStrand); 
+
+  /** Setter function for the auxillary information related to the query/target sequences */
+  void setSeqAuxInfo(int targetOrigOffset, int queryOrigOffset, char targetSeqStrand, char querySeqStrand); 
+
   /**
    * Prints either the full alignment or info in CSV format 
    * @param outputMode: choose what to print 0- full alignment 1-info in CSV format
    * Note that screenWidth is only used if choosing to print full alignment
    */
-  virtual void print(int outputMode, double pValLimit, ostream& sout,  int screenWidth) const;
+  virtual void print(int outputMode, double pValLimit, ostream& sout,  int screenWidth, bool withInfo=true) const;
 
   /**
    * Prints the alignment by assuming a minimum screen width
@@ -142,14 +154,21 @@ public:
    * @param sout the output stream for sending the output to
    * @param screenWidth is the width of each row of the alignment being printed
    */
-  virtual string toString(int screenWidth) const;
-  virtual void printFull(double pValLimit, ostream& sout,  int screenWidth) const;
+  virtual string toString(int screenWidth, bool withInfo=true) const;
+  virtual void printFull(double pValLimit, ostream& sout,  int screenWidth, bool withInfo=true) const;
+
+  /**
+   * Output the alignments in multiple alignment format
+   * E.g. chr1 + pos-start ACT---AT--ATCG pos-end
+   */
+  void printMFAFormat(double pValLimit, ostream& sout, int screenWidth) const; 
 
   /**
    * Output the complete set of information for an alignment in CSV format.
    * This includes the offsets, aligned bases, identity score and pValue
    */
   void printInfoCSV(ostream& sout) const; 
+
 
   /**
    * Use to get the corresponding pair in the query alignment for a given target base location
@@ -219,6 +238,12 @@ protected:
   /// relatively low cost and to save from recalculation on every use
   vector<int> targetIdxsInQuery;     /// The corresponding indexes of target sequence in the alignment
   vector<int> queryIdxsInTarget;     /// The corresponding indexes of query sequence in the alignment
+
+  //Extra info about the target/query sequences
+  int targetOrigOffset;              /// Original offset of the target sequence if it was extracted from a longer sequence
+  int queryOrigOffset;               /// Original offset of the query sequence if it was extracted from a longer sequence
+  char targetSeqStrand;              /// Target sequence strand
+  char querySeqStrand;               /// Query sequence strand
 
 };
 

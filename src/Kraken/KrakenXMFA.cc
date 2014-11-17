@@ -9,7 +9,7 @@
 void KrakenXMFA::convertXMFA(const string& inFile, const string& outDir, svec<string>& outFiles) {
   FlatFileParser parser;
   parser.Open(inFile);
-  map<string, AICoords> coords;
+  map<string, Coordinate> coords;
   while (parser.ParseLine()) {
     if (parser.GetItemCount() == 0)
       continue;
@@ -22,7 +22,7 @@ void KrakenXMFA::convertXMFA(const string& inFile, const string& outDir, svec<st
       int stop      = atol(startStr.substr(posDash+1).c_str()); 
       bool orient   = (parser.AsString(1)=="+")?true:false;
       string chr    = parser.AsString(2);
-      coords[specie] = AICoords(chr, orient, start, stop);
+      coords[specie] = Coordinate(chr, orient, start, stop);
     }
 
     if (startStr.at(0) == '=') { //End of set
@@ -43,10 +43,10 @@ void KrakenXMFA::convertXMFA(const string& inFile, const string& outDir, svec<st
   }
 }
 
-void KrakenXMFA::outSatsumaBlocks(const map<string, AICoords>& coords,
+void KrakenXMFA::outSatsumaBlocks(const map<string, Coordinate>& coords,
                                   map<string, string>& outStrings) {
-  for(map<string, AICoords>::const_iterator iter1=coords.begin(); iter1!=coords.end(); ++iter1) {
-    for(map<string, AICoords>::const_iterator iter2=iter1; iter2!=coords.end(); ++iter2) {
+  for(map<string, Coordinate>::const_iterator iter1=coords.begin(); iter1!=coords.end(); ++iter1) {
+    for(map<string, Coordinate>::const_iterator iter2=iter1; iter2!=coords.end(); ++iter2) {
       // Map is sorted on the key in the same way so no need to check for the reverse order
       string spPair = iter1->first + '\t' + iter2->first;
       outStrings[spPair] += (iter1->second.toString_noOrient('\t') + '\t' + 
