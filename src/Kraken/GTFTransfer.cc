@@ -51,7 +51,7 @@ void TransAnnotation::updateAnnotItem(AnnotItemBase* item, const Coordinate& tCo
   }
 }
 
-void TransAnnotation::writeGTF(ostream& sout) {
+void TransAnnotation::writeGTF(ostream& sout, bool outputAll) {
   svec<AnnotItemBase*> aItems(getDataByCoord(AITEM)); //Need a copy
   // Sort items based on primarily geneId and secondly transcriptId
   sort(aItems.begin(), aItems.end(), CompareGeneTransIdLess());
@@ -59,6 +59,8 @@ void TransAnnotation::writeGTF(ostream& sout) {
     it != aItems.end(); ++it) {
     if((*it)->getTransferred()) {
       sout << (*it)->toString('\t') << endl;
+    } else if(outputAll) {
+      sout << (*it)->toString('\t') << " Kraken_mapped \"FALSE\";" << endl;
     }
   }
 }

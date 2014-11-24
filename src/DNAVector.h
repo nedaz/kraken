@@ -353,9 +353,8 @@ class DNAVector
   int isize() const {return m_data.isize();}
   long long lsize() const {return m_data.lsize();}
   
-  const string& getName() const;
-  const string& GetName() const  { return getName(); } 
-  const string& Name() const     { return getName(); }
+  const string &getName() const;
+  const string &Name() const { return getName(); }
   /* setName
    * ---------------------
    * Sets the DNAVector's name to the specified name. Note that if
@@ -364,7 +363,6 @@ class DNAVector
    * vecDNAVector's name lookup table will become out of date.
    */
   void setName(const string &newName);
-  void SetName(const string &newName) { setName(newName); }
 
   void SetQual(int i, int score) {
     if (m_qual.isize() == 0)
@@ -460,32 +458,27 @@ class DNAVector
 
 
   string AsString() const {
-    string s;
-    for(unsigned int i=0; i<m_data.size(); i++) s.push_back(m_data[i]);
-    return s;
+    return Substring(0);
   }
   
-  void Substring(string & s, int start, int length) const {
-    s.resize(length);
-    for(int i=0; i<length; i++) 
-      s[i] = m_data[start+i];
-  }
-
   void Substring(string & s, int start) const {
-    int length = size() -start;
-    s.resize(length);
-    for(int i=0; i<length; i++) 
-      s[i] = m_data[start+i];
-  }
-
-  string Substring(int start, int length) const {
-    string s;    
-    for(int i=0; i<length; i++) s.push_back(m_data[start+i]);
-    return s;
+    Substring(s, start, size() -start);
   }
 
   string Substring(int start) const {
     return Substring(start, size()-start);
+  }
+
+  string Substring(int start, int length) const {
+    string s;    
+    Substring(s, start, length);
+    return s;
+  }
+
+  void Substring(string & s, int start, int length) const {
+    s.resize(length);
+    for(int i=0; i<length; i++) 
+      s[i] = m_data[start+i];
   }
 
   svec<char> & Data() {return m_data;}

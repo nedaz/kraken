@@ -36,7 +36,7 @@ public:
   bool hasBeenTranslated()           { return (translateSpace != speciesId); } 
 
   void translateCoordinates(const string& destSpecieId, Kraken& mapper, bool localAlign); 
-  virtual void writeGTF(ostream& sout); 
+  virtual void writeGTF(ostream& sout, bool outputAll); 
   
 private:
   /**   */

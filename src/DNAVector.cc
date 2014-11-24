@@ -435,7 +435,22 @@ double DNA_DiffAmb(char letter1, char letter2)
 //====================================================
 bool DNAVector::SetToSubOf(const DNAVector & v, int start, int len)
 {
-  if(v.size() < start+len) { return false; } //TODO WARN 
+  //if(v.size() < start+len) { return false; } //TODO WARN 
+
+  // Let's fix this differently...
+  if (len < 0) {
+    cout << "WARNING, negative length provided in DNAVector::SetToSubOf -> " << len << endl;
+    return false;
+  }
+  if (start < 0) {
+    cout << "WARNING, adjusting boundaries in DNAVector::SetToSubOf (1)" << endl;
+    len += start;
+    start = 0;
+  }
+  if (start+len > v.size()) {
+    cout << "WARNING, adjusting boundaries in DNAVector::SetToSubOf (2)" << endl;
+    len = v.size() - start;
+  }
 
   m_data.resize(len);
   int i;

@@ -21,6 +21,7 @@ int main(int argc,char** argv)
   commandArg<double> jStringCmmd("-m", "Limit on the maximum size of a region that will be translated", 200000);
   commandArg<double> kStringCmmd("-p", "P-value threshold for acceptable alignment of translated region", 0.0001);
   commandArg<double> lStringCmmd("-i", "Minimum sequence identity acceptable for a translated region", 0.0);
+  commandArg<bool>   outputAllCmmd("-a", "Output GTF input items even if they have not been mapped (0: false, 1: true)", false);
   commandLineParser P(argc,argv);
   P.SetDescription("Batch mode GTF transfer/comparison from an source to target genome.");
   P.registerArg(aStringCmmd);
@@ -35,6 +36,7 @@ int main(int argc,char** argv)
   P.registerArg(jStringCmmd);
   P.registerArg(kStringCmmd);
   P.registerArg(lStringCmmd);
+  P.registerArg(outputAllCmmd);
   P.parse();
   string rumConfigFile    = P.GetStringValueFor(aStringCmmd);
   string sourceAnnotFile  = P.GetStringValueFor(bStringCmmd);
@@ -48,6 +50,7 @@ int main(int argc,char** argv)
   double transSizeLimit   = P.GetDoubleValueFor(jStringCmmd);
   double pValThreshold    = P.GetDoubleValueFor(kStringCmmd);
   double minIdent         = P.GetDoubleValueFor(lStringCmmd);
+  bool   outputAll        = P.GetBoolValueFor(outputAllCmmd);
  
   FILE* pFile = fopen(applicationFile.c_str(), "w");
   Output2FILE::Stream()     = pFile;
@@ -65,7 +68,7 @@ int main(int argc,char** argv)
   transer.translate(sourceAnnot, targetGenomeId, lAlign); 
   ofstream outGTFStream;
   outGTFStream.open(outputGTFFileStr.c_str(), ios_base::out);
-  sourceAnnot.writeGTF(outGTFStream);
+  sourceAnnot.writeGTF(outGTFStream, outputAll);
   FILE_LOG(logINFO) <<"Done - writing GTF output";
  
   if(targetAnnotFile != "") {
