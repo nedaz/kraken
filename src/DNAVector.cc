@@ -442,14 +442,14 @@ bool DNAVector::SetToSubOf(const DNAVector & v, int start, int len)
     cout << "WARNING, negative length provided in DNAVector::SetToSubOf -> " << len << endl;
     return false;
   }
+  if (start+len > v.size()) {
+    cout << "WARNING, given sequence does not contain the given start position" << endl;
+    return false;
+  }
   if (start < 0) {
     cout << "WARNING, adjusting boundaries in DNAVector::SetToSubOf (1)" << endl;
     len += start;
     start = 0;
-  }
-  if (start+len > v.size()) {
-    cout << "WARNING, adjusting boundaries in DNAVector::SetToSubOf (2)" << endl;
-    len = v.size() - start;
   }
 
   m_data.resize(len);
@@ -461,7 +461,6 @@ bool DNAVector::SetToSubOf(const DNAVector & v, int start, int len)
     m_qual.resize(len);
     for (i=start; i<start+len; i++)
       m_qual[i-start] = v.Qual(i);
-    
   }
   return true;
 }
