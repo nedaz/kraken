@@ -53,7 +53,8 @@ bool AnnotItemBase::isIntronic(const AnnotItemBase& other) const {
 /** Used in GTF writer, important to keep correct formatting */
 string AnnotItem::toString(char sep) const {
   stringstream outStream;
-  string bioType  = getParent()->getBioType();
+  string bioType = "";
+  if(getParent()) { bioType = getParent()->getBioType(); }
   string transId  = getParentTransId();
   string geneId   = getParentGeneId();
   // Coordinates are published in 1-based (GTF format)
@@ -258,7 +259,7 @@ void Annotation::readGTF(const string& fileName, const string& specie) {
     int itemCount = parser.GetItemCount();
     if(itemCount<9 ) { 
      if(itemCount!=0) {
-       FILE_LOG(logWARNING)<<"GTF file inconsistency"; 
+       FILE_LOG(logWARNING)<<"GTF file inconsistency: " << parser.Line() ; 
      }
      continue;
     } 

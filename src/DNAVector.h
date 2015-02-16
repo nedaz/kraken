@@ -362,7 +362,7 @@ class DNAVector
    * instead use vecDNAVector's setName function. Otherwise, the
    * vecDNAVector's name lookup table will become out of date.
    */
-  void setName(const string &newName);
+  void SetName(const string &newName);
 
   void SetQual(int i, int score) {
     if (m_qual.isize() == 0)

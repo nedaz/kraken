@@ -41,13 +41,16 @@ void TransAnnotation::translateCoordinates( const string& targetSpecieId,
   translateSpace = targetSpecieId; 
 }
 
-void TransAnnotation::updateAnnotItem(AnnotItemBase* item, const Coordinate& tCoord) { 
+void TransAnnotation::updateAnnotItem(AnnotItemBase* item, const Coordinate& tCoord) {
   // Update parent transcript and parent gene
   AnnotItemBase* parentTrans = item->getParentNC();
-  AnnotItemBase* parentGene  = parentTrans->getParentNC();
+  AnnotItemBase* parentGene  = NULL;
+  if(parentTrans) { parentGene = parentTrans->getParentNC(); }
   item->transCoords(tCoord);
-  if(parentTrans->transCoords(item->getCoords())) {
-    parentGene->transCoords(parentTrans->getCoords()); 
+  if(parentTrans && parentTrans->transCoords(item->getCoords())) {
+    if(parentGene) {
+      parentGene->transCoords(parentTrans->getCoords());
+    }
   }
 }
 
