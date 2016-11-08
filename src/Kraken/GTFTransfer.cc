@@ -2,8 +2,8 @@
 #define NDEBUG
 #endif
 
-#include "extern/logger/log.h"
-#include "src/Kraken/GTFTransfer.h"
+#include "ryggrad/src/base/Logger.h"
+#include "GTFTransfer.h"
 
 //======================================================
 

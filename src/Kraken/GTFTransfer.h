@@ -2,9 +2,9 @@
 #define _GTF_TRANSFER_H_
 
 #include <map>
-#include "src/Kraken/KrakenMap.h"
-#include "src/Kraken/KrakenConfig.h"
-#include "src/AnnotationQuery/AnnotationQuery.h"
+#include "KrakenMap.h"
+#include "KrakenConfig.h"
+#include "AnnotationQuery/AnnotationQuery.h"
 
 
 class TransAnnotation: public Annotation 

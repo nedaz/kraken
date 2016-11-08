@@ -2,8 +2,8 @@
 #define NDEBUG
 #endif
 
-#include "extern/logger/log.h"
-#include "src/AnnotationQuery/AnnotationQuery.h"
+#include "ryggrad/src/base/Logger.h"
+#include "AnnotationQuery.h"
 
 
 

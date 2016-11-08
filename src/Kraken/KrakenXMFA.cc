@@ -2,7 +2,7 @@
 #define NDEBUG
 #endif
 
-#include "src/Kraken/KrakenXMFA.h"
+#include "KrakenXMFA.h"
 
 
 //======================================================

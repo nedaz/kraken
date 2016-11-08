@@ -1,0 +1,6 @@
+[submodule "ryggrad"]
+	path = ryggrad
+	url = https://github.com/GrabherrGroup/ryggrad.git
+[submodule "cola"]
+	path = cola
+	url = https://github.com/nedaz/cola.git

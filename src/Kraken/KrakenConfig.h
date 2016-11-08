@@ -1,7 +1,7 @@
 #ifndef KRAKENCONFIG_H
 #define KRAKENCONFIG_H
 
-#include "src/Kraken/KrakenMap.h"
+#include "KrakenMap.h"
 
 class KrakenConfig
 {

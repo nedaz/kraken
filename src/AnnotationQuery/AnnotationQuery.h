@@ -4,11 +4,11 @@
 #include <map>
 #include <string>
 #include <sstream>
-#include "base/SVector.h"
-#include "base/FileParser.h"
-#include "src/AlignmentBlock.h"
-#include "src/AnnotationQuery/NCList.h"
-#include "src/Coordinate.h"
+#include "ryggrad/src/base/SVector.h"
+#include "ryggrad/src/base/FileParser.h"
+#include "ryggrad/src/general/AlignmentBlock.h"
+#include "NCList.h"
+#include "ryggrad/src/general/Coordinate.h"
 
 // Forward declaration 
 class Annotation; 

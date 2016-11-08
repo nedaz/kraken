@@ -2,7 +2,7 @@
 #define _KRAKEN_XMFA_H_
 
 #include <map>
-#include "src/AnnotationQuery/AnnotationQuery.h"
+#include "../AnnotationQuery/AnnotationQuery.h"
 
 class KrakenXMFA
 { 

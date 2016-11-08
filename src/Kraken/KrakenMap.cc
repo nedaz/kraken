@@ -2,9 +2,9 @@
 #define NDEBUG
 #endif
 
-#include "src/Kraken/KrakenMap.h"
-#include "base/FileParser.h"
-#include "src/Cola/Cola.h"
+#include "KrakenMap.h"
+#include "ryggrad/src/base/FileParser.h"
+#include "cola/src/cola/Cola.h"
 
 void GenomeWideMap::Read(const string & fileName, 
 			 const string & source, 

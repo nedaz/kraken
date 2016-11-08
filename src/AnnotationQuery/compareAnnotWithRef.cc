@@ -1,7 +1,7 @@
 #include <string>
 #include <vector>
-#include "base/CommandLineParser.h"
-#include "src/AnnotationQuery/AnnotationQuery.h"
+#include "ryggrad/src/base/CommandLineParser.h"
+#include "AnnotationQuery.h"
 
 
 int main(int argc,char** argv)

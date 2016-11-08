@@ -1,9 +1,9 @@
 #include <string>
 
-#include "base/CommandLineParser.h"
-#include "extern/logger/log.h"
-#include "src/AnnotationQuery/AnnotationQuery.h"
-#include "src/Kraken/GTFTransfer.h"
+#include "ryggrad/src/base/CommandLineParser.h"
+#include "ryggrad/src/base/Logger.h"
+#include "AnnotationQuery/AnnotationQuery.h"
+#include "GTFTransfer.h"
 
 
 int main(int argc,char** argv)

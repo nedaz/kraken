@@ -1,6 +1,6 @@
-#include "src/Kraken/KrakenConfig.h"
-#include "base/FileParser.h"
-#include "src/Kraken/KrakenXMFA.h"
+#include "KrakenConfig.h"
+#include "ryggrad/src/base/FileParser.h"
+#include "KrakenXMFA.h"
 
 
 KrakenConfig::KrakenConfig(Kraken * p)

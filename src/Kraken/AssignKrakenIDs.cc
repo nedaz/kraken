@@ -1,7 +1,7 @@
 #include <string>
-#include "base/CommandLineParser.h"
-#include "base/FileParser.h"
-#include "src/DNAVector.h"
+#include "ryggrad/src/base/CommandLineParser.h"
+#include "ryggrad/src/base/FileParser.h"
+#include "ryggrad/src/general/DNAVector.h"
 
 void Fill(char * p) {
   int l = strlen(p);

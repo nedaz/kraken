@@ -3,8 +3,8 @@
 #define _EVALUTATE_RUM_H_
 
 #include <map>
-#include "src/Kraken/KrakenMap.h"
-#include "src/Kraken/KrakenConfig.h"
+#include "KrakenMap.h"
+#include "KrakenConfig.h"
 
 /**
  * 

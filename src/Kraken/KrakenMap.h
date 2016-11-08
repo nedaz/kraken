@@ -1,12 +1,12 @@
 #ifndef KRAKENMAP_H
 #define KRAKENMAP_H
 
-#include "extern/logger/log.h"
-#include "src/DNAVector.h"
-#include "base/FileParser.h"
-#include "src/MultXCorr.h"
-#include "src/AnnotationQuery/AnnotationQuery.h"
-#include "src/AlignmentBlock.h"
+#include "ryggrad/src/base/Logger.h"
+#include "ryggrad/src/general/DNAVector.h"
+#include "ryggrad/src/base/FileParser.h"
+#include "ryggrad/src/general/MultXCorr.h"
+#include "ryggrad/src/general/AlignmentBlock.h"
+#include "../AnnotationQuery/AnnotationQuery.h"
 
 class GenomeWideMap
 {

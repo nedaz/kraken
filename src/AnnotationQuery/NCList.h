@@ -3,7 +3,7 @@
 
 #include <string>
 #include <list>
-#include "base/SVector.h"
+#include "ryggrad/src/base/SVector.h"
 
 //======================================================
 /** 
