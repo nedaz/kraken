@@ -4,7 +4,7 @@
 #endif
 
 #include "ryggrad/src/base/CommandLineParser.h"
-#include "../AnnotationQuery/AnnotationQuery.h"
+#include "../annotationQuery/AnnotationQuery.h"
 #include "KrakenEvaluator.h"
 
 int main(int argc,char** argv) {

@@ -2,7 +2,7 @@
 
 #include "ryggrad/src/base/CommandLineParser.h"
 #include "ryggrad/src/base/Logger.h"
-#include "AnnotationQuery/AnnotationQuery.h"
+#include "../annotationQuery/AnnotationQuery.h"
 #include "GTFTransfer.h"
 
 

@@ -4,7 +4,7 @@
 #include <map>
 #include "KrakenMap.h"
 #include "KrakenConfig.h"
-#include "AnnotationQuery/AnnotationQuery.h"
+#include "../annotationQuery/AnnotationQuery.h"
 
 
 class TransAnnotation: public Annotation 

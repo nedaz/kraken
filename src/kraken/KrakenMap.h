@@ -6,7 +6,7 @@
 #include "ryggrad/src/base/FileParser.h"
 #include "ryggrad/src/general/MultXCorr.h"
 #include "ryggrad/src/general/AlignmentBlock.h"
-#include "../AnnotationQuery/AnnotationQuery.h"
+#include "../annotationQuery/AnnotationQuery.h"
 
 class GenomeWideMap
 {
