@@ -36,8 +36,8 @@ add_executable(TranscriptInfo             ${SOURCE_FILES_TRANSCRIPTINFO})
 # kraken binaries
 set(SOURCE_FILES_ASSIGNKRAKENIDS ${SOURCE_FILES_BASIC} src/kraken/AssignKrakenIDs.cc) 
 set(SOURCE_FILES_CLEANKRAKENFILES ${SOURCE_FILES_BASIC} src/kraken/CleanKrakenFile.cc) 
-set(SOURCE_FILES_KRAKENEVALUATOR  ${SOURCE_FILES_ANNOTQ} ${SOURCE_FILES_BASIC} ${SOURCE_FILES_COLA} ${SOURCE_FILES_KRAKEN} ${SOURCE_FILES_FFT} src/kraken/KrakenEvaluator.cc src/kraken/KrakenXMFA.cc) 
-set(SOURCE_FILES_RUNKRAKEN       ${SOURCE_FILES_ANNOTQ} ${SOURCE_FILES_BASIC} ${SOURCE_FILES_COLA} ${SOURCE_FILES_KRAKEN} ${SOURCE_FILES_FFT} src/kraken/GTFTransfer.cc src/kraken/KrakenXMFA.cc src/kraken/runKraken.cc) 
+set(SOURCE_FILES_KRAKENEVALUATOR  ${SOURCE_FILES_ANNOTQ} ${SOURCE_FILES_BASIC} ${SOURCE_FILES_COLA} ${SOURCE_FILES_KRAKEN} ${SOURCE_FILES_FFT} src/kraken/KrakenEvaluator.cc src/kraken/KrakenMultiAlign.cc) 
+set(SOURCE_FILES_RUNKRAKEN       ${SOURCE_FILES_ANNOTQ} ${SOURCE_FILES_BASIC} ${SOURCE_FILES_COLA} ${SOURCE_FILES_KRAKEN} ${SOURCE_FILES_FFT} src/kraken/GTFTransfer.cc src/kraken/KrakenMultiAlign.cc src/kraken/runKraken.cc) 
 
 add_executable(AssignKrakenIDs         ${SOURCE_FILES_ASSIGNKRAKENIDS})
 add_executable(CleanKrakenFiles        ${SOURCE_FILES_CLEANKRAKENFILES})

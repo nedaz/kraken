@@ -2,11 +2,11 @@
 #define NDEBUG
 #endif
 
-#include "KrakenXMFA.h"
+#include "KrakenMultiAlign.h"
 
 
 //======================================================
-void KrakenXMFA::convertXMFA(const string& inFile, const string& outDir, svec<string>& outFiles) {
+void KrakenMultiAlign::convertXMFA(const string& inFile, const string& outDir, svec<string>& outFiles) {
   FlatFileParser parser;
   parser.Open(inFile);
   map<string, Coordinate> coords;
@@ -43,7 +43,7 @@ void KrakenXMFA::convertXMFA(const string& inFile, const string& outDir, svec<st
   }
 }
 
-void KrakenXMFA::outSatsumaBlocks(const map<string, Coordinate>& coords,
+void KrakenMultiAlign::outSatsumaBlocks(const map<string, Coordinate>& coords,
                                   map<string, string>& outStrings) {
   for(map<string, Coordinate>::const_iterator iter1=coords.begin(); iter1!=coords.end(); ++iter1) {
     for(map<string, Coordinate>::const_iterator iter2=iter1; iter2!=coords.end(); ++iter2) {
