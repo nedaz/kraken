@@ -1,6 +1,6 @@
 #include "KrakenConfig.h"
 #include "ryggrad/src/base/FileParser.h"
-#include "KrakenMultiAlign.h"
+#include "../annotationQuery/MultiAlignParser.h"
 
 
 KrakenConfig::KrakenConfig(Kraken * p)
@@ -67,9 +67,9 @@ bool KrakenConfig::Configure(const string & fileName)
       system("mkdir Kraken_temp");
  
       string xmfaFile = parser.AsString(0);
-      KrakenMultiAlign handler;
+      MultiAlignParser multiParser;
       svec<string> outFiles;
-      handler.convertXMFA(parser.AsString(0), "Kraken_temp", outFiles);
+      multiParser.convertXMFA(parser.AsString(0), "Kraken_temp", outFiles);
       for(svec<string>::iterator iter=outFiles.begin(); iter!=outFiles.end(); ++iter) {
         StringParser sParser;
         sParser.SetLine(*iter, "\t");

@@ -17,16 +17,18 @@ set(SOURCE_FILES_KRAKEN ryggrad/src/general/CodonTranslate.cc ryggrad/src/genera
 
 
 # AnnotationQuery binaries
-set(SOURCE_FILES_COMPAREANNOTWITHREF        ${SOURCE_FILES_ANNOTQ} ${SOURCE_FILES_BASIC} src/annotationQuery/compareAnnotWithRef.cc) 
-set(SOURCE_FILES_GETIOSINGLEEXONTRANSCRIPTS ${SOURCE_FILES_ANNOTQ} ${SOURCE_FILES_BASIC} src/annotationQuery/getIOSingleExonTranscripts.cc) 
-set(SOURCE_FILES_RUNANNOTATIONQUERY         ${SOURCE_FILES_ANNOTQ} ${SOURCE_FILES_BASIC} src/annotationQuery/runAnnotationQuery.cc)
-set(SOURCE_FILES_RUNGTFCOMPARE              ${SOURCE_FILES_ANNOTQ} ${SOURCE_FILES_BASIC} src/annotationQuery/runGTFCompare.cc)
-set(SOURCE_FILES_THREEWAYANNOTCOMPARE       ${SOURCE_FILES_ANNOTQ} ${SOURCE_FILES_BASIC} src/annotationQuery/threeWayAnnotCompare.cc)
-set(SOURCE_FILES_TWOWAYANNOTCOMPARE         ${SOURCE_FILES_ANNOTQ} ${SOURCE_FILES_BASIC} src/annotationQuery/twoWayAnnotCompare.cc)
+set(SOURCE_FILES_COMPAREANNOTWITHREF        ${SOURCE_FILES_ANNOTQ} ${SOURCE_FILES_BASIC} src/annotationQuery/CompareAnnotWithRef.cc) 
+set(SOURCE_FILES_GETIOSINGLEEXONTRANSCRIPTS ${SOURCE_FILES_ANNOTQ} ${SOURCE_FILES_BASIC} src/annotationQuery/GetIOSingleExonTranscripts.cc) 
+set(SOURCE_FILES_MAF2SATSUMA                ${SOURCE_FILES_ANNOTQ} ${SOURCE_FILES_BASIC} src/annotationQuery/MultiAlignParser.cc src/annotationQuery/MAF2Satsuma.cc)
+set(SOURCE_FILES_RUNANNOTATIONQUERY         ${SOURCE_FILES_ANNOTQ} ${SOURCE_FILES_BASIC} src/annotationQuery/RunAnnotationQuery.cc)
+set(SOURCE_FILES_RUNGTFCOMPARE              ${SOURCE_FILES_ANNOTQ} ${SOURCE_FILES_BASIC} src/annotationQuery/RunGTFCompare.cc)
+set(SOURCE_FILES_THREEWAYANNOTCOMPARE       ${SOURCE_FILES_ANNOTQ} ${SOURCE_FILES_BASIC} src/annotationQuery/ThreeWayAnnotCompare.cc)
+set(SOURCE_FILES_TWOWAYANNOTCOMPARE         ${SOURCE_FILES_ANNOTQ} ${SOURCE_FILES_BASIC} src/annotationQuery/TwoWayAnnotCompare.cc)
 set(SOURCE_FILES_TRANSCRIPTINFO             ${SOURCE_FILES_ANNOTQ} ${SOURCE_FILES_BASIC} src/annotationQuery/TranscriptInfo.cc) 
 
 add_executable(CompareAnnotWithRef        ${SOURCE_FILES_COMPAREANNOTWITHREF})
 add_executable(GetIOSingleExonTranscripts ${SOURCE_FILES_GETIOSINGLEEXONTRANSCRIPTS})
+add_executable(Maf2Satsuma                ${SOURCE_FILES_MAF2SATSUMA})
 add_executable(RunAnnotationQuery         ${SOURCE_FILES_RUNANNOTATIONQUERY})
 add_executable(RunGTFCompare              ${SOURCE_FILES_RUNGTFCOMPARE})
 add_executable(ThreeWayAnnotCompare       ${SOURCE_FILES_THREEWAYANNOTCOMPARE})
@@ -36,8 +38,8 @@ add_executable(TranscriptInfo             ${SOURCE_FILES_TRANSCRIPTINFO})
 # kraken binaries
 set(SOURCE_FILES_ASSIGNKRAKENIDS ${SOURCE_FILES_BASIC} src/kraken/AssignKrakenIDs.cc) 
 set(SOURCE_FILES_CLEANKRAKENFILES ${SOURCE_FILES_BASIC} src/kraken/CleanKrakenFile.cc) 
-set(SOURCE_FILES_KRAKENEVALUATOR  ${SOURCE_FILES_ANNOTQ} ${SOURCE_FILES_BASIC} ${SOURCE_FILES_COLA} ${SOURCE_FILES_KRAKEN} ${SOURCE_FILES_FFT} src/kraken/KrakenEvaluator.cc src/kraken/KrakenMultiAlign.cc) 
-set(SOURCE_FILES_RUNKRAKEN       ${SOURCE_FILES_ANNOTQ} ${SOURCE_FILES_BASIC} ${SOURCE_FILES_COLA} ${SOURCE_FILES_KRAKEN} ${SOURCE_FILES_FFT} src/kraken/GTFTransfer.cc src/kraken/KrakenMultiAlign.cc src/kraken/runKraken.cc) 
+set(SOURCE_FILES_KRAKENEVALUATOR  ${SOURCE_FILES_ANNOTQ} ${SOURCE_FILES_BASIC} ${SOURCE_FILES_COLA} ${SOURCE_FILES_KRAKEN} ${SOURCE_FILES_FFT} src/annotationQuery/MultiAlignParser.cc src/kraken/KrakenEvaluator.cc) 
+set(SOURCE_FILES_RUNKRAKEN       ${SOURCE_FILES_ANNOTQ} ${SOURCE_FILES_BASIC} ${SOURCE_FILES_COLA} ${SOURCE_FILES_KRAKEN} ${SOURCE_FILES_FFT} src/annotationQuery/MultiAlignParser.cc src/kraken/GTFTransfer.cc src/kraken/RunKraken.cc) 
 
 add_executable(AssignKrakenIDs         ${SOURCE_FILES_ASSIGNKRAKENIDS})
 add_executable(CleanKrakenFiles        ${SOURCE_FILES_CLEANKRAKENFILES})
