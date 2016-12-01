@@ -17,10 +17,12 @@ int main(int argc,char** argv)
   commandArg<string> fStringCmmd("-o", "Mapping output in GTF format", "mapped.gtf");
   commandArg<string> gStringCmmd("-O", "Output from comparing mapped transcripts to targetAnnot", "compared");
   commandArg<string> hStringCmmd("-l", "Application logging file","application.log");
-  commandArg<bool>   iStringCmmd("-L", "Choose if final boundaries should be set by local alignment", false);
+  commandArg<bool>   iStringCmmd("-L", "Choose if mapped region boundaries should be adjusted/limited with local alignment values", false);
+  commandArg<bool>   iiStringCmmd("-F", "Choose if mapped regions should be adjusted to remove overflow/negative indexes", true);
   commandArg<double> jStringCmmd("-m", "Limit on the maximum size of a region that will be translated", 200000);
   commandArg<double> kStringCmmd("-p", "P-value threshold for acceptable alignment of translated region", 0.0001);
   commandArg<double> lStringCmmd("-i", "Minimum sequence identity acceptable for a translated region", 0.0);
+  commandArg<double> mStringCmmd("-C", "Minimum alignment coverage of mapped region for accepting tanslation ", 0.3);
   commandArg<bool>   outputAllCmmd("-a", "Output GTF input items even if they have not been mapped (0: false, 1: true)", false);
   commandLineParser P(argc,argv);
   P.SetDescription("Batch mode GTF transfer/comparison from an source to target genome.");
@@ -33,9 +35,11 @@ int main(int argc,char** argv)
   P.registerArg(gStringCmmd);
   P.registerArg(hStringCmmd);
   P.registerArg(iStringCmmd);
+  P.registerArg(iiStringCmmd);
   P.registerArg(jStringCmmd);
   P.registerArg(kStringCmmd);
   P.registerArg(lStringCmmd);
+  P.registerArg(mStringCmmd);
   P.registerArg(outputAllCmmd);
   P.parse();
   string rumConfigFile    = P.GetStringValueFor(aStringCmmd);
@@ -46,10 +50,12 @@ int main(int argc,char** argv)
   string outputGTFFileStr = P.GetStringValueFor(fStringCmmd);
   string outputCmpFileStr = P.GetStringValueFor(gStringCmmd);
   string applicationFile  = P.GetStringValueFor(hStringCmmd);
-  bool   lAlign           = P.GetBoolValueFor(iStringCmmd);
+  bool   laAdjust         = P.GetBoolValueFor(iStringCmmd);   
+  bool   ofAdjust         = P.GetBoolValueFor(iiStringCmmd);   
   double transSizeLimit   = P.GetDoubleValueFor(jStringCmmd);
   double pValThreshold    = P.GetDoubleValueFor(kStringCmmd);
   double minIdent         = P.GetDoubleValueFor(lStringCmmd);
+  double minCover         = P.GetDoubleValueFor(mStringCmmd);
   bool   outputAll        = P.GetBoolValueFor(outputAllCmmd);
  
   FILE* pFile = fopen(applicationFile.c_str(), "w");
@@ -58,14 +64,17 @@ int main(int argc,char** argv)
   FILE_LOG(logINFO) <<"Running GTF transfer";
  
   GTFTransfer transer(rumConfigFile);
-  transer.SetTransSizeLimit(transSizeLimit);
-  transer.SetMinIdent(minIdent);
-  transer.SetPValThresh(pValThreshold);
+  transer.setTransSizeLimit(transSizeLimit);
+  transer.setMinIdent(minIdent);
+  transer.setMinAlignCover(minCover);
+  transer.setPValThresh(pValThreshold);
+  transer.setLocalAlignAdjust(laAdjust);
+  transer.setOverflowAdjust(ofAdjust);
   TransAnnotation sourceAnnot = TransAnnotation(sourceAnnotFile, sourceGenomeId);
   
   // Map Transcripts onto corresponding exons and infer corresponding 
   // transcripts based on number of overlapping exons - nonoverlapping exons
-  transer.translate(sourceAnnot, targetGenomeId, lAlign); 
+  transer.translate(sourceAnnot, targetGenomeId); 
   ofstream outGTFStream;
   outGTFStream.open(outputGTFFileStr.c_str(), ios_base::out);
   sourceAnnot.writeGTF(outGTFStream, outputAll);

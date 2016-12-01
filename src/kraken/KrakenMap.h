@@ -7,6 +7,7 @@
 #include "ryggrad/src/general/MultXCorr.h"
 #include "ryggrad/src/general/AlignmentBlock.h"
 #include "../annotationQuery/AnnotationQuery.h"
+#include "KrakenParams.h"
 
 class GenomeWideMap
 {
@@ -58,7 +59,7 @@ private:
 
 class GenomeSeq
 {
- public:
+public:
   GenomeSeq() {}
   GenomeSeq(const string &n) {m_name = n;}
 
@@ -78,7 +79,7 @@ class GenomeSeq
   const vecDNAVector & DNA() const {return m_dna;}
   const string & Name() const {return m_name;}
   
- private:
+private:
   vecDNAVector m_dna;
   string m_name;
 };
@@ -88,7 +89,7 @@ class GenomeSeq
 
 class Route
 {
- public:
+public:
   Route() {
     m_dist = 0.;
     m_invalid = false;
@@ -107,7 +108,7 @@ class Route
     m_dist += dist;
   }
 
- private:
+private:
  
   svec<string> m_source;
   svec<string> m_target;
@@ -122,7 +123,7 @@ class Kraken;
 
 class RouteFinder
 {
- public:
+public:
   RouteFinder() {}
   
   void SetNumGenomes(int genomes) {
@@ -131,7 +132,7 @@ class RouteFinder
 
   bool FindRoute(Route & out, const string & source, const string & target, Kraken & rum);
 
- private:
+private:
   bool FindRecursive(svec<string> & final, svec<string> & path, const string & target, Kraken & rum) const;
   
   svec<Route> m_routes;
@@ -143,13 +144,19 @@ class RouteFinder
 
 class Kraken
 {
-  friend class RouteFinder;
- public:
-  Kraken() {
-    m_pValThresh_p     = 0.0001;
-    m_minIdent_p       = 0.;
-    m_transSizeLimit_p = 163840;
-  }
+friend class RouteFinder;
+public:
+  //Default ctor
+  Kraken():m_seq(), m_maps(), m_xc(), m_router(), m_params() {}
+  //Ctor to set custom params
+  Kraken(const KrakenParams& params):m_seq(), m_maps(), m_xc(), m_router(), m_params(params) {}
+
+  void    setLocalAlignAdjust(bool laa)    { m_params.setLocalAlignAdjust(laa);   }
+  void    setOverflowAdjust(bool ofa)      { m_params.setOverflowAdjust(ofa);     } 
+  void    setTransSizeLimit(int tsl)       { m_params.setTransSizeLimit(tsl);     }
+  void    setPValThresh(double pvt)        { m_params.setPValThresh(pvt);         }
+  void    setMinIdent(double mi)           { m_params.setMinIdent(mi);            }
+  void    setMinAlignCover( double mac)    { m_params.setMinAlignCover(mac);      } 
 
   void Allocate(const string & source, const string & target, double distance = 0.5);
   void DoneAlloc();
@@ -165,26 +172,20 @@ class Kraken
   bool Find(const Coordinate & lookup, 
 	    const string & source, 
 	    const string & target,
-	    bool  lAlign, 
             Coordinate& result);
 
   bool FindWithEdges(const Coordinate& lookup, const string & source,
-                     const string & target, bool lAlign,
+                     const string & target,
                      int edgeLength, Coordinate& result);
 
-  void SetPValThresh(double p)     { m_pValThresh_p = p;     }
-  void SetMinIdent(double d)       { m_minIdent_p = d;       }
-  void SetTransSizeLimit(double l) { m_transSizeLimit_p = l; }
-
-
- private:
+private:
   bool RoughMap(const Coordinate& lookup, const string& source, const string& target,
                 DNAVector& sourceSeq, DNAVector& targetSeq, int& maxPos,
                 float& maxVal, int& len, Coordinate& result); 
   bool SetSequence(const vecDNAVector& genome, Coordinate& coords, DNAVector& resultSeq);
   bool RoughAlign(DNAVector& target, DNAVector& source, int& maxPos, float& maxVal, int& len, Coordinate& result); 
   void Ccorrelate(const DNAVector& q, const DNAVector& t, double size, float& maxValOut, int& maxPosOut); 
-  bool ExhaustAlign(DNAVector& trueDestination, DNAVector& source, int slack, float alignedRatio, bool localAlign, Coordinate& result);
+  bool ExhaustAlign(DNAVector& trueDestination, DNAVector& source, int slack, Coordinate& result);
   int  Index(const string & source, const string & target);
   int  Genome(const string & name);
   
@@ -197,9 +198,7 @@ class Kraken
   MultiSizeXCorr m_xc;
   RouteFinder m_router;
 
-  double m_pValThresh_p;     /// Threshodl for acceptable p-value of the sequence alignment for translation
-  double m_minIdent_p;       /// Minimum acceptable identity of sequences for translation
-  double m_transSizeLimit_p; /// Parameter for the limit on the size of blocks that can be translated
+  KrakenParams m_params;  /// Set of parameters containing, Threshold of pValue, min ident value and trans limit size among other items
 };
 
 #endif // KRAKENMAP_H
