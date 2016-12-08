@@ -8,7 +8,7 @@
 //======================================================
 
 void TransAnnotation::translateCoordinates( const string& targetSpecieId, 
-                                           Kraken& mapper, bool localAlign) { 
+                                           Kraken& mapper) { 
   if(hasBeenTranslated()) { 
     FILE_LOG(logERROR) <<"Cannot translate coordinates of this annotation \
                           as they have already been translated once"; 
@@ -21,7 +21,7 @@ void TransAnnotation::translateCoordinates( const string& targetSpecieId,
     FILE_LOG(logDEBUG1) << annotItems[i]->toString('\t');  
     Coordinate res;
     bool bOK = mapper.Find(annotItems[i]->getCoords(), this->getTranslateSpace(),
-                           targetSpecieId, localAlign, res);
+                           targetSpecieId, res);
     if (bOK) {
       FILE_LOG(logDEBUG) << "Item was Translated: " << res.toString('\t');  
       updateAnnotItem(annotItems[i], res);  
@@ -70,9 +70,9 @@ void TransAnnotation::writeGTF(ostream& sout, bool outputAll) {
 
 
 //======================================================
-void GTFTransfer::translate(TransAnnotation& sourceAnnot, const string& targetId, bool localAlign) {
+void GTFTransfer::translate(TransAnnotation& sourceAnnot, const string& targetId) {
   // Translate the mappings of the source annotaion into targetination annotation space
-  sourceAnnot.translateCoordinates(targetId, mapper, localAlign); 
+  sourceAnnot.translateCoordinates(targetId, m_mapper); 
 }
 
 void GTFTransfer::reportAllOverlaps(const Annotation& qA, const Annotation& tA, 

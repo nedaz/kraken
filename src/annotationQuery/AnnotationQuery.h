@@ -69,8 +69,8 @@ public:
   void setStop(int stop)                                { coords.setStop(stop);       }
   char getOrient() const                                { return coords.getOrient();  }
   void setOrient(bool orient)                           { coords.setOrient(orient);   }
-  const Coordinate& getCoords() const                     { return coords;              }
-  void setCoords(const Coordinate& crds)                  { coords = crds;              }
+  const Coordinate& getCoords() const                   { return coords;              }
+  void setCoords(const Coordinate& crds)                { coords = crds;              }
   const svec<AnnotItemBase*>& getChildren() const       { return children;            }
   bool isReversed() const                               { return coords.isReversed(); }
   /** For Transcripts & Genes, this function returns exons belonging to them */

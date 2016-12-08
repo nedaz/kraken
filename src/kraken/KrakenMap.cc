@@ -313,7 +313,7 @@ const GenomeWideMap & Kraken::GetMap(const string & name) const
 }
 
 bool Kraken::FindWithEdges(const Coordinate& lookup, const string & source,
-                   const string & target, bool lAlign, int edgeLength,
+                   const string & target, int edgeLength,
                    Coordinate& result) 
 {
     int from = lookup.getStart();
@@ -331,12 +331,12 @@ bool Kraken::FindWithEdges(const Coordinate& lookup, const string & source,
     FILE_LOG(logDEBUG2) << "Mapping (left): ";
     Coordinate s, resLeft;
     s.set(lookup.getChr(), true, from, min(from + edgeLength, to));
-    bool bLeft = Find(s, source, target, lAlign, resLeft);
+    bool bLeft = Find(s, source, target, resLeft);
 
     FILE_LOG(logDEBUG3) << "Mapping (right): ";
     Coordinate resRight;
     s.set(lookup.getChr(), true,  max(to - edgeLength, from), to);
-    bool bRight = Find(s, source, target, lAlign, resRight);
+    bool bRight = Find(s, source, target, resRight);
 
     if (!bLeft && !bRight) {
       FILE_LOG(logDEBUG2) << "failed left and right mapping ";
@@ -381,8 +381,7 @@ bool Kraken::FindWithEdges(const Coordinate& lookup, const string & source,
 }
 
 bool Kraken::Find(const Coordinate & lookup, 
-               const string & source, const string & target,
-               bool lAlign, Coordinate & result)
+               const string & source, const string & target, Coordinate & result)
 {
   Route route;
   if(! m_router.FindRoute(route, source, target, *this)) {
@@ -422,7 +421,24 @@ bool Kraken::Find(const Coordinate & lookup,
   FILE_LOG(logDEBUG3) << "Slack for finer alignment: " << slack;
   DNAVector trueDestination;
   trueDestination.SetToSubOf(bestDestSeq, bestMaxPos-slack, bestLen+2*slack);
-  return ExhaustAlign(trueDestination, sourceSeq, slack, 0.3, lAlign, result);
+  bool exhaustAligned = ExhaustAlign(trueDestination, sourceSeq, slack, result);
+
+  // Adjust overflow if required 
+  if(exhaustAligned && m_params.isOverflowAdjust()) {
+    FILE_LOG(logDEBUG2) << "Adjusting for overflow: " << result.getStart() << " - " << result.getStop();
+    if(result.getStart()<0) {
+      FILE_LOG(logDEBUG2) << "Adjusting beginning of mapped region for overflow: " << result.getStart() << " -> 0 ";
+      result.setStart(0);           
+    }
+    const vecDNAVector & destGenome = m_seq[Genome(target)].DNA();
+    int destChrSize = destGenome(result.getChr()).isize();
+    if(result.getStop() > destChrSize-1) { 
+      FILE_LOG(logDEBUG2) << "Adjusting end of mapped region for overflow: " << result.getStop() << " -> " << destChrSize; 
+      result.setStop(destChrSize-1); 
+    } 
+  }
+
+  return exhaustAligned; 
 }
  
 bool Kraken::RoughMap(const Coordinate& lookup, const string& source,
@@ -484,7 +500,7 @@ bool Kraken::RoughAlign(DNAVector& q, DNAVector& t,
 
   const int BLOCK_LIMIT   = 163840;
   const int BLOCK_OVERLAP = BLOCK_LIMIT/10;
-  if(t.isize() > m_transSizeLimit_p) {  
+  if(t.isize() > m_params.getTransSizeLimit()) {  
       FILE_LOG(logWARNING) << "Requested region to be mapped: " 
                            << t.isize()<<" is too large";
       return false;
@@ -565,8 +581,7 @@ void Kraken::Ccorrelate(const DNAVector& q, const DNAVector& t, double size,
 }
 
 bool Kraken::ExhaustAlign(DNAVector& trueDestination, DNAVector& source,
-                          int slack, float alignedRatio, 
-                          bool localAlign, Coordinate& result) {
+                          int slack, Coordinate& result) {
   Cola aligner;
   int bound;
   // Optimal align with a band of slack+5% of the query sequence size using Smithwaterman-gap-affine
@@ -575,9 +590,16 @@ bool Kraken::ExhaustAlign(DNAVector& trueDestination, DNAVector& source,
                              AlignerParams(bound, SWGA, -5, -2, -1));
 
   FILE_LOG(logDEBUG3) << endl << pAlign.toString(100);
-     
+ 
+  double ratio = (double)pAlign.getTargetBaseAligned()/(double)source.isize();
+  if (ratio<m_params.getMinAlignCover() || pAlign.calcPVal()>m_params.getPValThresh() || pAlign.calcIdentityScore()<m_params.getMinIdent()) {
+    FILE_LOG(logDEBUG1) << "Rejecting...based on exhaustive alignment - Code7";
+    return false;
+  }
+    
+  // Adjust beginning and end in accordance with alignment results
   int adjustBegin, adjustEnd; 
-  if(localAlign) {
+  if(m_params.isLocalAlignAdjust()) {
     adjustBegin = pAlign.getQueryOffset() - slack;
     adjustEnd   = pAlign.getQueryLength() - 2*slack - adjustBegin - pAlign.getQueryBaseAligned();
   } else {
@@ -586,8 +608,8 @@ bool Kraken::ExhaustAlign(DNAVector& trueDestination, DNAVector& source,
 //                  - (pAlign.getTargetLength() - p.Align.getTargetOffset() - pAlign.getAlignmentLen());  
     adjustEnd   = pAlign.getQueryLength() - 2*slack - adjustBegin - max(pAlign.getTargetLength(), pAlign.getAlignmentLen());
   } 
-
   FILE_LOG(logDEBUG2) << "Adjust begin: " << adjustBegin << " Adjust end: " << adjustEnd;
+
   if (result.isReversed()){
     result.setStart(result.getStart() + adjustEnd);
     result.setStop(result.getStop() - adjustBegin);    
@@ -596,17 +618,10 @@ bool Kraken::ExhaustAlign(DNAVector& trueDestination, DNAVector& source,
     result.setStop(result.getStop() - adjustEnd);
   }
 
-  double ratio = (double)pAlign.getTargetBaseAligned()/(double)source.isize();
-  if (ratio<alignedRatio || pAlign.calcPVal()>m_pValThresh_p || pAlign.calcIdentityScore()<m_minIdent_p) {
-    FILE_LOG(logDEBUG1) << "Rejecting...based on exhaustive alignment - Code7";
-    return false;
-  }
-
   return true;
 }
 
-int Kraken::Index(const string & source, const string & target)
-{
+int Kraken::Index(const string & source, const string & target) {
   GenomeWideMap tmp;
   tmp.Set(source, target, 0.);
 

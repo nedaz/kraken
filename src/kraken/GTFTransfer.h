@@ -35,7 +35,7 @@ public:
   const string& getTranslateSpace()  { return translateSpace;                }
   bool hasBeenTranslated()           { return (translateSpace != speciesId); } 
 
-  void translateCoordinates(const string& destSpecieId, Kraken& mapper, bool localAlign); 
+  void translateCoordinates(const string& destSpecieId, Kraken& m_mapper); 
   virtual void writeGTF(ostream& sout, bool outputAll); 
   
 private:
@@ -55,22 +55,25 @@ private:
 class GTFTransfer:public GTFCompare
 {
 public:
-  GTFTransfer(const string& configFile):mapper() {
-    KrakenConfig config(&mapper);
+  GTFTransfer(const string& configFile):m_mapper() {
+    KrakenConfig config(&m_mapper);
     config.Configure(configFile);
   } 
 
-  void SetPValThresh(double p)     { mapper.SetPValThresh(p);     }
-  void SetMinIdent(double d)       { mapper.SetMinIdent(d);       }
-  void SetTransSizeLimit(double l) { mapper.SetTransSizeLimit(l); }
+  void    setLocalAlignAdjust(bool laa)    { m_mapper.setLocalAlignAdjust(laa);   }
+  void    setOverflowAdjust(bool ofa)      { m_mapper.setOverflowAdjust(ofa);     } 
+  void    setTransSizeLimit(int tsl)       { m_mapper.setTransSizeLimit(tsl);     }
+  void    setPValThresh(double pvt)        { m_mapper.setPValThresh(pvt);         }
+  void    setMinIdent(double mi)           { m_mapper.setMinIdent(mi);            }
+  void    setMinAlignCover( double mac)    { m_mapper.setMinAlignCover(mac);      } 
 
   virtual void reportAllOverlaps(const Annotation& qA, const Annotation& tA, 
                          AnnotField qFieldType, ostream& sout);
 
-  void translate(TransAnnotation& origAnnot, const string& destId, bool localAlign);
+  void translate(TransAnnotation& origAnnot, const string& destId);
 
 private:
-  Kraken mapper;
+  Kraken m_mapper;
 };  
 
 

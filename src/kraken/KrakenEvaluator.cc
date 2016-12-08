@@ -118,13 +118,10 @@ void KrakenEvaluator::compareMapOutputs(Kraken& mapper1, Kraken& mapper2, const 
                                      bool limitToEdgeMap, int edgeSize) {
   Coordinate result1, result2;
   bool found1, found2;
-  if(limitToEdgeMap) {
-    found1 = mapper1.FindWithEdges(origCoords, origin, destin, false, edgeSize, result1);
-    found2 = mapper2.FindWithEdges(origCoords, origin, destin, false, edgeSize, result2);
-  } else {
-    found1 = mapper1.Find(origCoords, origin, destin, true, result1);
-    found2 = mapper2.Find(origCoords, origin, destin, true, result2);
-  }
+  mapper1.setLocalAlignAdjust(!limitToEdgeMap);
+  mapper2.setLocalAlignAdjust(!limitToEdgeMap);
+  found1 = mapper1.Find(origCoords, origin, destin, result1);
+  found2 = mapper2.Find(origCoords, origin, destin, result2);
 
   //if((found1 && destGenome(result1.getChr()).size()<1000000) || 
   //   (found2 && destGenome(result2.getChr()).size()<1000000)) { 
