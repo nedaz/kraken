@@ -63,6 +63,7 @@ public:
   void    setLocalAlignAdjust(bool laa)    { m_mapper.setLocalAlignAdjust(laa);   }
   void    setOverflowAdjust(bool ofa)      { m_mapper.setOverflowAdjust(ofa);     } 
   void    setTransSizeLimit(int tsl)       { m_mapper.setTransSizeLimit(tsl);     }
+  void    setMapSizeLimit(int msl)         { m_mapper.setMapSizeLimit(msl);       }
   void    setPValThresh(double pvt)        { m_mapper.setPValThresh(pvt);         }
   void    setMinIdent(double mi)           { m_mapper.setMinIdent(mi);            }
   void    setMinAlignCover( double mac)    { m_mapper.setMinAlignCover(mac);      } 

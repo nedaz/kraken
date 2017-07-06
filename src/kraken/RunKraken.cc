@@ -20,6 +20,7 @@ int main(int argc,char** argv)
   commandArg<bool>   iStringCmmd("-L", "Choose if mapped region boundaries should be adjusted/limited with local alignment values", false);
   commandArg<bool>   iiStringCmmd("-F", "Choose if mapped regions should be adjusted to remove overflow/negative indexes", true);
   commandArg<double> jStringCmmd("-m", "Limit on the maximum size of a region that will be translated", 200000);
+  commandArg<double> jjStringCmmd("-M", "Limit on the maximum size of a region that will be mapped to without splitting", 300000);
   commandArg<double> kStringCmmd("-p", "P-value threshold for acceptable alignment of translated region", 0.0001);
   commandArg<double> lStringCmmd("-i", "Minimum sequence identity acceptable for a translated region", 0.0);
   commandArg<double> mStringCmmd("-C", "Minimum alignment coverage of mapped region for accepting tanslation ", 0.3);
@@ -37,6 +38,7 @@ int main(int argc,char** argv)
   P.registerArg(iStringCmmd);
   P.registerArg(iiStringCmmd);
   P.registerArg(jStringCmmd);
+  P.registerArg(jjStringCmmd);
   P.registerArg(kStringCmmd);
   P.registerArg(lStringCmmd);
   P.registerArg(mStringCmmd);
@@ -53,6 +55,7 @@ int main(int argc,char** argv)
   bool   laAdjust         = P.GetBoolValueFor(iStringCmmd);   
   bool   ofAdjust         = P.GetBoolValueFor(iiStringCmmd);   
   double transSizeLimit   = P.GetDoubleValueFor(jStringCmmd);
+  double mapSizeLimit     = P.GetDoubleValueFor(jjStringCmmd);
   double pValThreshold    = P.GetDoubleValueFor(kStringCmmd);
   double minIdent         = P.GetDoubleValueFor(lStringCmmd);
   double minCover         = P.GetDoubleValueFor(mStringCmmd);
@@ -65,6 +68,7 @@ int main(int argc,char** argv)
  
   GTFTransfer transer(rumConfigFile);
   transer.setTransSizeLimit(transSizeLimit);
+  transer.setMapSizeLimit(mapSizeLimit);
   transer.setMinIdent(minIdent);
   transer.setMinAlignCover(minCover);
   transer.setPValThresh(pValThreshold);

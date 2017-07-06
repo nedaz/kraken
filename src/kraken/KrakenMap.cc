@@ -63,7 +63,7 @@ void GenomeWideMap::MergeBlocks()
 }
 
 //TODO Kraken functions are not const where they should be, underlying FuzzySearch.. functions need to be fixed first
-bool GenomeWideMap::Map(const Coordinate & lookup, svec<Coordinate>& results)
+bool GenomeWideMap::Map(const Coordinate & lookup, svec<Coordinate>& results, int mapSizeLimit)
 {
   AlignmentBlock tmp;
   tmp.set(lookup.getChr(), lookup.getStart(), lookup.getStart());
@@ -115,9 +115,9 @@ bool GenomeWideMap::Map(const Coordinate & lookup, svec<Coordinate>& results)
     FILE_LOG(logDEBUG3) << "Start: " << begin.toString() << " Stop: "<< end.toString(); 
     split = true; 
   }
-  int threshold = max(100000, 10*lookup.findLength());
+  int threshold = max(mapSizeLimit, 10*lookup.findLength());
   if (abs(end.getQueryStop()-begin.getQueryStart()) > threshold 
-     || abs(begin.getQueryStop() - end.getQueryStart()) > threshold) { //TODO parametrize
+     || abs(begin.getQueryStop() - end.getQueryStart()) > threshold) { 
     FILE_LOG(logDEBUG1) << "Initial target region too big - code6: "
                         << end.getQueryStop() - begin.getQueryStart() << " "
                         << begin.getQueryStop() - end.getQueryStart();
@@ -286,7 +286,7 @@ bool Kraken::MapThroughRoute(const Route & route, svec<Coordinate>& results, con
     FILE_LOG(logDEBUG3) << "Mapping " << source << " and " << target;
     int index = Index(source, target);
     Coordinate tmp;
-    if (!m_maps[index].Map(tempLookup, results)) {
+    if (!m_maps[index].Map(tempLookup, results, m_params.getMapSizeLimit())) {
       FILE_LOG(logDEBUG2) << "No map found between " << source << " and " << target;
       return false;
     }

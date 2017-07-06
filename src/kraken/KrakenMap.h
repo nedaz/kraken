@@ -23,7 +23,7 @@ public:
   }
 
   void Read(const string & fileName, const string & source, const string & target, bool flip, double distance = 0.5);
-  bool Map(const Coordinate& lookup, svec<Coordinate>& results);
+  bool Map(const Coordinate& lookup, svec<Coordinate>& results, int mapSizeLimit);
 
   bool operator < (const GenomeWideMap & m) const {
     if (m_source != m.m_source) {
@@ -154,6 +154,7 @@ public:
   void    setLocalAlignAdjust(bool laa)    { m_params.setLocalAlignAdjust(laa);   }
   void    setOverflowAdjust(bool ofa)      { m_params.setOverflowAdjust(ofa);     } 
   void    setTransSizeLimit(int tsl)       { m_params.setTransSizeLimit(tsl);     }
+  void    setMapSizeLimit(int msl)         { m_params.setMapSizeLimit(msl);       }
   void    setPValThresh(double pvt)        { m_params.setPValThresh(pvt);         }
   void    setMinIdent(double mi)           { m_params.setMinIdent(mi);            }
   void    setMinAlignCover( double mac)    { m_params.setMinAlignCover(mac);      } 
